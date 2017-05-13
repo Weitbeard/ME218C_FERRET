@@ -28,13 +28,13 @@ CP=cp
 CND_CONF=default
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
 IMAGE_TYPE=debug
-OUTPUT_SUFFIX=hex
-DEBUGGABLE_SUFFIX=hex
+OUTPUT_SUFFIX=cof
+DEBUGGABLE_SUFFIX=cof
 FINAL_IMAGE=dist/${CND_CONF}/${IMAGE_TYPE}/ME218C_FERRET.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
 else
 IMAGE_TYPE=production
 OUTPUT_SUFFIX=hex
-DEBUGGABLE_SUFFIX=hex
+DEBUGGABLE_SUFFIX=cof
 FINAL_IMAGE=dist/${CND_CONF}/${IMAGE_TYPE}/ME218C_FERRET.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
 endif
 
@@ -83,7 +83,7 @@ ifneq ($(INFORMATION_MESSAGE), )
 endif
 	${MAKE}  -f nbproject/Makefile-default.mk dist/${CND_CONF}/${IMAGE_TYPE}/ME218C_FERRET.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
 
-MP_PROCESSOR_OPTION=EEPROM8
+MP_PROCESSOR_OPTION=16f690
 MP_LINKER_DEBUG_OPTION= 
 # ------------------------------------------------------------------------------------
 # Rules for buildStep: assemble
@@ -92,10 +92,7 @@ ${OBJECTDIR}/FERRET_Control.o: FERRET_Control.asm  nbproject/Makefile-${CND_CONF
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/FERRET_Control.o.d 
 	@${RM} ${OBJECTDIR}/FERRET_Control.o 
-	@${FIXDEPS} dummy.d -e "C:/Users/Luke/Documents/Github_Repositories/ME218C_FERRET/ME218C_FERRET.X/FERRET_Control.ERR" $(SILENT) -rsi ${MP_AS_DIR} -c ${MP_AS} $(MP_EXTRA_AS_PRE) -d__DEBUG  -q -p$(MP_PROCESSOR_OPTION)  $(ASM_OPTIONS)    \"C:/Users/Luke/Documents/Github_Repositories/ME218C_FERRET/ME218C_FERRET.X/FERRET_Control.asm\" 
-	@${MV}  C:/Users/Luke/Documents/Github_Repositories/ME218C_FERRET/ME218C_FERRET.X/FERRET_Control.O ${OBJECTDIR}/FERRET_Control.o
-	@${MV}  C:/Users/Luke/Documents/Github_Repositories/ME218C_FERRET/ME218C_FERRET.X/FERRET_Control.ERR ${OBJECTDIR}/FERRET_Control.o.err
-	@${MV}  C:/Users/Luke/Documents/Github_Repositories/ME218C_FERRET/ME218C_FERRET.X/FERRET_Control.LST ${OBJECTDIR}/FERRET_Control.o.lst
+	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/FERRET_Control.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -d__DEBUG -d__MPLAB_DEBUGGER_SIMULATOR=1 -q -p$(MP_PROCESSOR_OPTION)  -l\"${OBJECTDIR}/FERRET_Control.lst\" -e\"${OBJECTDIR}/FERRET_Control.err\" $(ASM_OPTIONS)    -o\"${OBJECTDIR}/FERRET_Control.o\" \"FERRET_Control.asm\" 
 	@${DEP_GEN} -d "${OBJECTDIR}/FERRET_Control.o"
 	@${FIXDEPS} "${OBJECTDIR}/FERRET_Control.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
 	
@@ -104,10 +101,7 @@ ${OBJECTDIR}/FERRET_Control.o: FERRET_Control.asm  nbproject/Makefile-${CND_CONF
 	@${MKDIR} "${OBJECTDIR}" 
 	@${RM} ${OBJECTDIR}/FERRET_Control.o.d 
 	@${RM} ${OBJECTDIR}/FERRET_Control.o 
-	@${FIXDEPS} dummy.d -e "C:/Users/Luke/Documents/Github_Repositories/ME218C_FERRET/ME218C_FERRET.X/FERRET_Control.ERR" $(SILENT) -rsi ${MP_AS_DIR} -c ${MP_AS} $(MP_EXTRA_AS_PRE) -q -p$(MP_PROCESSOR_OPTION)  $(ASM_OPTIONS)    \"C:/Users/Luke/Documents/Github_Repositories/ME218C_FERRET/ME218C_FERRET.X/FERRET_Control.asm\" 
-	@${MV}  C:/Users/Luke/Documents/Github_Repositories/ME218C_FERRET/ME218C_FERRET.X/FERRET_Control.O ${OBJECTDIR}/FERRET_Control.o
-	@${MV}  C:/Users/Luke/Documents/Github_Repositories/ME218C_FERRET/ME218C_FERRET.X/FERRET_Control.ERR ${OBJECTDIR}/FERRET_Control.o.err
-	@${MV}  C:/Users/Luke/Documents/Github_Repositories/ME218C_FERRET/ME218C_FERRET.X/FERRET_Control.LST ${OBJECTDIR}/FERRET_Control.o.lst
+	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/FERRET_Control.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -q -p$(MP_PROCESSOR_OPTION)  -l\"${OBJECTDIR}/FERRET_Control.lst\" -e\"${OBJECTDIR}/FERRET_Control.err\" $(ASM_OPTIONS)    -o\"${OBJECTDIR}/FERRET_Control.o\" \"FERRET_Control.asm\" 
 	@${DEP_GEN} -d "${OBJECTDIR}/FERRET_Control.o"
 	@${FIXDEPS} "${OBJECTDIR}/FERRET_Control.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
 	
@@ -118,13 +112,11 @@ endif
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
 dist/${CND_CONF}/${IMAGE_TYPE}/ME218C_FERRET.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk    
 	@${MKDIR} dist/${CND_CONF}/${IMAGE_TYPE} 
-	@${MV}  "FERRET_Control.HEX" dist/${CND_CONF}/${IMAGE_TYPE}/ME218C_FERRET.X.${IMAGE_TYPE}.hex 
-	
+	${MP_LD} $(MP_EXTRA_LD_PRE)   -p$(MP_PROCESSOR_OPTION)  -w -x -u_DEBUG -z__ICD2RAM=1 -m"${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map"   -z__MPLAB_BUILD=1  -z__MPLAB_DEBUG=1 -z__MPLAB_DEBUGGER_SIMULATOR=1 $(MP_LINKER_DEBUG_OPTION) -odist/${CND_CONF}/${IMAGE_TYPE}/ME218C_FERRET.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}  ${OBJECTFILES_QUOTED_IF_SPACED}     
 else
 dist/${CND_CONF}/${IMAGE_TYPE}/ME218C_FERRET.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk   
 	@${MKDIR} dist/${CND_CONF}/${IMAGE_TYPE} 
-	@${MV}  "FERRET_Control.HEX" dist/${CND_CONF}/${IMAGE_TYPE}/ME218C_FERRET.X.${IMAGE_TYPE}.hex 
-	
+	${MP_LD} $(MP_EXTRA_LD_PRE)   -p$(MP_PROCESSOR_OPTION)  -w  -m"${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map"   -z__MPLAB_BUILD=1  -odist/${CND_CONF}/${IMAGE_TYPE}/ME218C_FERRET.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX}  ${OBJECTFILES_QUOTED_IF_SPACED}     
 endif
 
 
