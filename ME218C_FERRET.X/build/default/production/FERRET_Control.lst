@@ -1,4 +1,4 @@
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE  1
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE  1
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -57,7 +57,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00041 #define THREE_S     H'5C'           
                       00042 #define FOUR_S      H'7A'           
                       00043 #define FIVE_S      H'99'           
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE  2
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE  2
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -116,7 +116,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0004   2???           00094         goto    ISR_PUSH    ;
                       00095 
                       00096 ;Lookup table code organization
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE  3
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE  3
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -175,7 +175,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0023   340D           00147         retlw   HALF_FWD    ;8
 0024   3400           00148         retlw   STOPPED     ;9
 0025   340D           00149         retlw   HALF_FWD    ;10th
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE  4
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE  4
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -234,7 +234,7 @@ Message[302]: Register in operand not in bank 0.  Ensure that bank bits are corr
 0020   1683 1303      00192         banksel OPTION_REG      ;
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
 0022   1281           00193         bcf     OPTION_REG,T0CS ;set clock source as FOSC/4 (TOCS in OPTION_REG)
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE  5
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE  5
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -293,7 +293,7 @@ Message[302]: Register in operand not in bank 0.  Ensure that bank bits are corr
 003C   1683 1303      00238         banksel TRISC           ; Step 1
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
 003E   1687           00239         bsf     TRISC,TF_PWM    ;
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE  6
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE  6
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -352,7 +352,7 @@ Message[302]: Register in operand not in bank 0.  Ensure that bank bits are corr
                       00288 ;==========================================================================
 005F                  00289 INIT_VARS:                      ;
 005F   300F           00290         movlw   HB_TIME         ;load heartbeat blink time
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE  7
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE  7
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -411,7 +411,7 @@ Message[302]: Register in operand not in bank 0.  Ensure that bank bits are corr
                       00340 ;==========================================================================
                       00341 ;IOC_RESP routine code
                       00342 ;==========================================================================
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE  8
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE  8
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -460,8 +460,8 @@ Message[302]: Register in operand not in bank 0.  Ensure that bank bits are corr
 00A3   1400           00381         bsf     FLAGS,RUNNING       ;change RUNNING state to true
 00A4   1283 1303      00382         banksel PORTA               ;enable RUNNING indicator
 00A6   1485           00383         bsf     PORTA,RUN_IND       ;
-00A7   1283 1303      00384         banksel PORTA               ;enable lift fan
-00A9   1705           00385         bsf     PORTA,LIFT_CNTRL    ;
+00A7   1283 1303      00384         banksel PORTC               ;enable lift fan
+00A9   1707           00385         bsf     PORTC,LIFT_CNTRL    ;
 00AA   01??           00386         clrf    SRVA_SIND           ;reset sequence indeces
 00AB   01??           00387         clrf    TF_SIND             ;
 00AC   0008           00388         return                      ;return from the subroutine
@@ -470,7 +470,7 @@ Message[302]: Register in operand not in bank 0.  Ensure that bank bits are corr
                       00391 ;END_CHASE branch code
                       00392 ;==========================================================================
 00AD                  00393 END_CHASE:                          ;
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE  9
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE  9
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -479,8 +479,8 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00AD   1000           00394         bcf     FLAGS,RUNNING       ;change RUNNING state to false
 00AE   1283 1303      00395         banksel PORTA               ;disable RUNNING indicator
 00B0   1085           00396         bcf     PORTA,RUN_IND       ;
-00B1   1283 1303      00397         banksel PORTA               ;disable lift fan
-00B3   1305           00398         bcf     PORTA,LIFT_CNTRL    ;
+00B1   1283 1303      00397         banksel PORTC               ;disable lift fan
+00B3   1307           00398         bcf     PORTC,LIFT_CNTRL    ;
 00B4   3000           00399         movlw   STOPPED             ;disable thrust fan
 00B5   00??           00400         movwf   TF_DC               ;
 00B6   2???           00401         call    TF_SET_DC           ;
@@ -529,7 +529,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 00D0   03??           00444         decf    DEB_TMR,F           ;decrement debounce timer
 00D1   1903           00445         btfsc   STATUS,Z            ; if debounce time is over
 00D2   2???           00446         call    DEBOUNCE_END        ;   end the debouncing
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE 10
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE 10
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -588,7 +588,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00497 ;==========================================================================
 00EE                  00498 SRVA_OFF:                       ;
 00EE   3006           00499         movlw   SRVA_DIS        ;set servo A pw to DISENGAGED (~1ms)
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE 11
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE 11
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -647,14 +647,14 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00550 ;==========================================================================
                       00551 ;END of code
                       00552 ;==========================================================================
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE 12
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE 12
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
 3FC4                  00553     END                         ;
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE 13
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE 13
 
 
 SYMBOL TABLE
@@ -713,7 +713,7 @@ C1CH0                             00000000
 C1CH1                             00000001
 C1IE                              00000005
 C1IF                              00000005
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE 14
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE 14
 
 
 SYMBOL TABLE
@@ -772,7 +772,7 @@ DEB_TIME                          FIVE_S
 DEB_TMR                           00000079
 D_A                               00000005
 D_NOT_A                           00000005
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE 15
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE 15
 
 
 SYMBOL TABLE
@@ -831,7 +831,7 @@ IOC0                              00000000
 IOC1                              00000001
 IOC2                              00000002
 IOC3                              00000003
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE 16
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE 16
 
 
 SYMBOL TABLE
@@ -890,7 +890,7 @@ NOT_WRITE                         00000002
 OERR                              00000001
 ONE_S                             H'1E'
 OPTION_REG                        00000081
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE 17
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE 17
 
 
 SYMBOL TABLE
@@ -949,7 +949,7 @@ RABIF                             00000000
 RB4                               00000004
 RB5                               00000005
 RB6                               00000006
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE 18
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE 18
 
 
 SYMBOL TABLE
@@ -1008,7 +1008,7 @@ SRVA_SEQ                          00000005
 SRVA_SIND                         0000007B
 SRVA_TMR                          00000076
 SRV_CNT                           00000073
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE 19
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE 19
 
 
 SYMBOL TABLE
@@ -1067,7 +1067,7 @@ TF_PWM                            RC5
 TF_SET_DC                         000000FB
 TF_SIND                           0000007C
 TF_TIME_SEQ                       00000010
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE 20
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE 20
 
 
 SYMBOL TABLE
@@ -1126,7 +1126,7 @@ TUN4                              00000004
 TWENTY_MS                         H'4E'
 TWO_S                             H'3D'
 TX9                               00000006
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE 21
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE 21
 
 
 SYMBOL TABLE
@@ -1185,7 +1185,7 @@ _BOD_OFF                          00003CFF
 _BOD_ON                           00003FFF
 _BOD_SBODEN                       00003DFF
 _BOREN_NSLEEP                     00003EFF
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE 22
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE 22
 
 
 SYMBOL TABLE
@@ -1242,7 +1242,7 @@ _WDT_ON                           00003FFF
 _XT_OSC                           00003FF9
 __16F690                          00000001
 
-MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:10:31         PAGE 23
+MPASM 5.68                FERRET_CONTROL.ASM   5-13-2017  1:19:33         PAGE 23
 
 
 

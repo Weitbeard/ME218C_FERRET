@@ -381,8 +381,8 @@ START_CHASE:			    ;
 	bsf	FLAGS,RUNNING	    ;change RUNNING state to true
 	banksel	PORTA		    ;enable RUNNING indicator
 	bsf	PORTA,RUN_IND	    ;
-	banksel	PORTA		    ;enable lift fan
-	bsf	PORTA,LIFT_CNTRL    ;
+	banksel	PORTC		    ;enable lift fan
+	bsf	PORTC,LIFT_CNTRL    ;
 	clrf	SRVA_SIND	    ;reset sequence indeces
 	clrf	TF_SIND		    ;
 	return			    ;return from the subroutine
@@ -394,8 +394,8 @@ END_CHASE:			    ;
 	bcf	FLAGS,RUNNING	    ;change RUNNING state to false
 	banksel	PORTA		    ;disable RUNNING indicator
 	bcf	PORTA,RUN_IND	    ;
-	banksel	PORTA		    ;disable lift fan
-	bcf	PORTA,LIFT_CNTRL    ;
+	banksel	PORTC		    ;disable lift fan
+	bcf	PORTC,LIFT_CNTRL    ;
 	movlw	STOPPED		    ;disable thrust fan
 	movwf	TF_DC		    ;
 	call	TF_SET_DC	    ;
