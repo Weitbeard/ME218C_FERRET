@@ -53,12 +53,9 @@
     
 ;Timer 2 defines (Thrust fan PWM configurations)
 #define	TF_PERIOD   H'65'	;Period for thrust fan PWM (PR2 value)
-#define	TF_DEF_DC   H'0D'	;Default thrust fan PWM duty cycle (~50%)
-#define	FULL_FWD    TF_PERIOD	;100% duty cycle forward
-#define HALF_FWD    H'0D'	;50% duty cycle forward
-#define STOPPED	    H'00'	;0% duty cycle
-#define HALF_REV    H'00'	;50% duty cycle reverse
-#define FULL_REV    H'00'	;100% duty cycle reverse
+#define	TF_FULL     TF_PERIOD	;100% duty cycle on thrust fan
+#define TF_HALF     H'32'	;50% duty cycle on thrust fan
+#define TF_OFF	    H'00'	;0% duty cycle
 
 ;Flag defines
 #define	RUNNING	    0		;flag to note if FERRET is in RUNNING state
@@ -67,32 +64,28 @@
 #define SRVB_ENGD   3		;flag to note if servo B is ENGAGED
     
 ;Misc. & readability defines
-#define	HB_ON	    H'01'	;bit value in PORTA to turn the HB LED on 
-    
-;Temporary register storage for ISR
-.temps	udata	    H'20'
-W_TEMP	    res 1   ;temporary storage for W register
-STATUS_TEMP res 1   ;temporary storage for STATUS register
-PCLATH_TEMP res 1   ;temporary storage for PCLATH register
+#define	HB_ON	    H'01'	;bit value in PORTA to turn the HB LED on
+#define	NUM_CYCLS   H'04'	;number of RUN cycles to repeat per routine
+#define NUM_STEPS   H'0C'	;number of steps per RUN cycle - 1
     
 ;Variable assignment (stored in common access bank registers)
 .vars	udata_shr   H'70'
-; Software timers/counters
+; Temporary register storage for ISR
+W_TEMP	    res 1   ;temporary storage for W register
+STATUS_TEMP res 1   ;temporary storage for STATUS register
+PCLATH_TEMP res 1   ;temporary storage for PCLATH register
+; Software counters/timers
+CYCL_CNT    res	1   ;RUN sequence cycle counter
 SRV_CNT	    res 1   ;servo tick counter
+SRVA_PW	    res 1   ;servo A control signal PW counter
+SRVB_PW	    res 1   ;servo B control signal PW counter
 SRV_TMR	    res 1   ;general servo control signal timer
-SRVA_PW	    res 1   ;servo A control signal PW
-SRVA_TMR    res 1   ;servo A ON/OFF timer
-SRVB_PW	    res 1   ;servo B control signal PW
-SRVB_TMR    res 1   ;servo B ON/OFF timer
-TF_TMR	    res 1   ;thrust fan ON/OFF timer
+RUN_TMR	    res 1   ;RUN step timer
 HB_TMR	    res 1   ;heartbeat blink timer
 DEB_TMR	    res 1   ;button debounce timer
 ; Misc. vars
 FLAGS	    res 1   ;register to hold various boolean flags
-SRVA_SIND   res	1   ;servo A sequence index
-SRVB_SIND   res	1   ;servo B sequence index
-TF_SIND	    res	1   ;thrust fan sequence index
-TF_DC	    res 1   ;temporary DC value storage for thrust fan
+RUN_INDX    res	1   ;RUN sequence index
 ;End of variable assignment
 
 ;Reset vector code organization
@@ -107,57 +100,43 @@ TF_DC	    res 1   ;temporary DC value storage for thrust fan
 .tables	code	H'05'	    ;start lookup tables immediately following int. vec.
 	
 ;==========================================================================
-;SRVA_SEQ lookup table - hardcoded routine times for servo A
+;RUN_STEP_SEQ lookup table - hardcoded routine steps
 ;==========================================================================
-SRVA_SEQ:		    ;ordered time values to be used with servo A
-	addwf	PCL,F	    ;
-	retlw	SIX_S	    ;1st
-	retlw   FIVE_S	    ;2
-	retlw   FIVE_S	    ;3
-	retlw   FIVE_S	    ;4
-	retlw   FIVE_S	    ;5th
-	retlw   FIVE_S	    ;6
-	retlw   FIVE_S	    ;7
-	retlw   FIVE_S	    ;8
-	retlw   FIVE_S	    ;9
-	retlw   FIVE_S	    ;10th
-	; ***** TODO *****
-	;total time should be ~138 seconds
+RUN_STEP_SEQ:			    ;
+	addwf	PCL,F		    ;
+	goto	RUN_HRD_BRAKE	    ;1st
+	goto	RUN_SFT_BRAKE	    ;2
+	goto	RUN_DRIFT	    ;3
+	goto	RUN_HALF_FWD	    ;4
+	goto	RUN_FULL_FWD	    ;5th
+	goto	RUN_DRIFT	    ;6
+	goto	RUN_BRAKE_LEFT	    ;7
+	goto	RUN_HALF_LEFT	    ;8
+	goto	RUN_FULL_LEFT	    ;9
+	goto	RUN_BRAKE_RIGHT	    ;10th
+	goto	RUN_HALF_RIGHT	    ;11
+	goto	RUN_FULL_RIGHT	    ;12
+	goto	RUN_OFF		    ;13
 
 ;==========================================================================
-;TF_TIME_SEQ lookup table - hardcoded routine times for thrust fan
+;RUN_STEP_TIME lookup table - hardcoded routine times for each step
 ;==========================================================================
-TF_TIME_SEQ:		    ;ordered time values to be used with thrust fan
+RUN_STEP_TIME:		    ;
 	addwf	PCL,F	    ;
 	retlw	THREE_S	    ;1st
-	retlw   FIVE_S	    ;2
-	retlw   FIVE_S	    ;3
-	retlw   FIVE_S	    ;4
-	retlw   FIVE_S	    ;5th
-	retlw   FIVE_S	    ;6
-	retlw   FIVE_S	    ;7
-	retlw   FIVE_S	    ;8
-	retlw   FIVE_S	    ;9
-	retlw   FIVE_S	    ;10th
-	; ***** TODO *****
-	;total time should be ~138 seconds
-	
-;==========================================================================
-;TF_PW_SEQ lookup table - hardcoded routine times for thrust fan PWM DC
-;==========================================================================
-TF_DC_SEQ:		    ;ordered DC values to be used with thrust fan
-	addwf	PCL,F	    ;
-	retlw	STOPPED	    ;1st
-	retlw   FULL_FWD    ;2
-	retlw	STOPPED	    ;3
-	retlw   FULL_FWD    ;4
-	retlw	STOPPED	    ;5th
-	retlw   FULL_FWD    ;6
-	retlw	STOPPED	    ;7
-	retlw   FULL_FWD    ;8
-	retlw	STOPPED	    ;9
-	retlw   FULL_FWD    ;10th
-	; ***** TODO *****
+	retlw   THREE_S	    ;2
+	retlw   EIGHT_S	    ;3
+	retlw   THREE_S	    ;4
+	retlw   THREE_S	    ;5th
+	retlw   THREE_S	    ;6
+	retlw   THREE_S	    ;7
+	retlw   THREE_S	    ;8
+	retlw   THREE_S	    ;9
+	retlw   THREE_S	    ;10th
+	retlw   THREE_S	    ;11
+	retlw   THREE_S	    ;12
+	retlw   THREE_S	    ;13
+	;total time should be ~44 seconds (x5 cycles)
 	
 ;==========================================================================
 ;MAIN setup code
@@ -188,7 +167,7 @@ WAIT_4_CLOCK:			;wait for stable clock
 	banksel	TRISA		;set all A pins as outputs (TRISA register)
 	clrf	TRISA		;and set the Run button pin to an input
 	bsf	TRISA,RUN_BTN	;
-	banksel	TRISC		;set all C pins as outputs (TRISA register)
+	banksel	TRISC		;set all C pins as outputs (TRISC register)
 	clrf	TRISC		;
 	
 	;Run Button IOC configuration
@@ -253,9 +232,7 @@ WAIT_4_CLOCK:			;wait for stable clock
 	banksel	CCP1CON		; Step 3
 	movlw	B'00001100'	; *include 2 LSBs of duty cycle here (00)*
 	movwf	CCP1CON		;
-	banksel	CCPR1L		; Step 4
-	movlw	STOPPED		;
-	movwf	CCPR1L		;
+	call	TF_SET_OFF	; Step 4
 	banksel PIR1		; Step 5a
 	bcf	PIR1,TMR2IF	;
 	banksel T2CON		; Step 5b
@@ -299,14 +276,8 @@ MAIN_LOOP:			;
 INIT_VARS:			;
 	movlw	HB_TIME		;load heartbeat blink time
 	movwf	HB_TMR		;
-	movlw	H'00'		;load 1st sequence OFF time for servo
-	call	SRVA_SEQ	;
-	movwf	SRV_TMR		;
-	movlw	H'00'		;load 1st sequence OFF time for thrust fan
-	call	TF_TIME_SEQ	;
-	movwf	TF_TMR		;
-	call	SRVA_OFF	;disable servo A
-	return			;
+	clrf	FLAGS		;clear all program flags
+	goto	RUN_OFF		;disable all motors (turn FERRET OFF)
 	
 ;==========================================================================
 ;ISR routine code
@@ -327,8 +298,8 @@ ISR_T0:				    ;
 	banksel	INTCON		    ;check Timer 0 interrupt
 	btfss	INTCON,T0IE	    ; check local interrupt enable status
 	goto	ISR_T1		    ;  if clear, skip to next section of ISR
-	btfsc	INTCON,T0IF	    ; check interrupt flag status
-	call	TMR0_OVFL	    ;  if set, call the Timer 0 overflow routine
+	btfsc	INTCON,T0IF	    ;  else, check interrupt flag status
+	call	TMR0_OVFL	    ;    if set, call the Timer 0 ovrflw routine
 
 ISR_T1:				    ;
 	banksel	PIE1		    ;check Timer 1 interrupt
@@ -389,12 +360,11 @@ START_CHASE:			    ;
 	banksel	INTCON		    ;clear the port A IOC flag
 	bcf	INTCON,RABIF	    ;
 	bsf	FLAGS,RUNNING	    ;change RUNNING state to true
-	banksel	PORTA		    ;enable RUNNING indicator
+	banksel	PORTA		    ;enable RUNNING indicator LED
 	bsf	PORTA,RUN_IND	    ;
-	banksel	PORTC		    ;enable lift fan
-	bsf	PORTC,LIFT_CNTRL    ;
-	clrf	SRVA_SIND	    ;reset sequence indeces
-	clrf	TF_SIND		    ;
+	clrf	RUN_INDX	    ;reset RUN sequence index
+	movlw	NUM_CYCLS	    ;reset cycle count
+	movwf	CYCL_CNT	    ;
 	return			    ;return from the subroutine
 	
 ;==========================================================================
@@ -404,13 +374,7 @@ END_CHASE:			    ;
 	bcf	FLAGS,RUNNING	    ;change RUNNING state to false
 	banksel	PORTA		    ;disable RUNNING indicator
 	bcf	PORTA,RUN_IND	    ;
-	banksel	PORTC		    ;disable lift fan
-	bcf	PORTC,LIFT_CNTRL    ;
-	movlw	STOPPED		    ;disable thrust fan
-	movwf	TF_DC		    ;
-	call	TF_SET_DC	    ;
-	call	SRVA_OFF	    ;disengage servo
-	return			    ;return from the subroutine
+	goto	RUN_OFF		    ;disable all motors (turn FERRET OFF)
 
 ;==========================================================================
 ;TMR0_OVFL routine code (servo PWM)
@@ -466,14 +430,9 @@ DEBOUNCING_LOOP:		    ;DEBOUNCING sequence loop
 RUNNING_LOOP:			    ;RUNNING sequence loop
 	btfss	FLAGS,RUNNING	    ;check if in RUNNING state
 	goto	END_TMR1_OVFL	    ; if not, go to next part of Timer 1 ISR
-	; Servo ON/OFF control timing
-	decf	SRV_TMR,F	    ;decrement servo timer
+	decf	RUN_TMR,F	    ;decrement RUN step timer
 	btfsc	STATUS,Z	    ;
-	call	SRV_CNTRL	    ; if cleared, call the servo control rout.
-	; Thrust fan ON/OFF control timing
-	decfsz	TF_TMR,F	    ;decrement thrust fan timer
-	btfsc	STATUS,Z	    ;
-	call	TF_CNTRL	    ; if cleared, toggle the thrust fan
+	call	RUN_CNTRL	    ; if cleared, call the RUN control routine
 	
 END_TMR1_OVFL:
 	return			    ;return from the subroutine
@@ -487,90 +446,199 @@ TOGGLE_HB:		        ;
 	xorwf	PORTA,F		;
 	movlw	HB_TIME		;reset HB_TIME
 	movwf	HB_TMR		;
-	return			;
+	return			;	
 	
 ;==========================================================================
-;SRV_CNTRL routine code
+;RUN_CNTRL routine code
 ;==========================================================================
-SRV_CNTRL:			    ;
-	incf	SRVA_SIND,F	    ;load new value into srvo timer
-	movf	SRVA_SIND,W	    ; - increment index ****TODO**** NO OVERFLOW PROTECTION!
-	call	SRVA_SEQ	    ; - get next time from sequence
-	movwf	SRV_TMR		    ; - put it in timer
-	btfss	FLAGS,SRVA_ENGD	    ;if servo A is not engaged,
-	goto	SRVA_ON		    ; engage servo A
-	goto	SRVA_OFF	    ;else, disengage servo A
+RUN_CNTRL:			    ;
+	incf	RUN_INDX,F	    ;begin next step in RUN sequence:
+	movf	RUN_INDX,W	    ; - increment index
+	sublw	NUM_STEPS	    ;
+	btfss	STATUS,C	    ; - if a cycle is complete
+	goto	NEXT_CYCLE	    ;	   begin a new cycle
+	goto	RUN_STEP	    ; - otherwise, run the next step
+
+NEXT_CYCLE:
+	clrf	RUN_INDX	    ;reset RUN step index
+	decfsz	CYCL_CNT,W	    ;decrement cycle counter
+	goto	RUN_STEP	    ;  if not 0, run the first sequence step
+	goto	END_CHASE	    ;  if 0, stop the CHASE routine
+    
+RUN_STEP:			    ;	
+	call	RUN_STEP_SEQ	    ;call nex RUN step from sequence
+	movf	RUN_INDX,W	    ;get the corresponding step run time
+	call	RUN_STEP_TIME	    ;put it into the step timer
+	movwf	RUN_TMR		    ;
+	return			    ;
+
+;==========================================================================
+;TF_SET_FULL routine code
+;==========================================================================
+TF_SET_FULL:			    ;
+    banksel	CCPR1L		    ;set thrust fan duty cycle to FULL
+    movlw	TF_FULL		    ;
+    movwf	CCPR1L		    ;
+    return			    ;
+
+;==========================================================================
+;TF_SET_HALF routine code
+;==========================================================================
+TF_SET_HALF:			    ;
+    banksel	CCPR1L		    ;set thrust fan duty cycle to HALF
+    movlw	TF_HALF		    ;
+    movwf	CCPR1L		    ;
+    return			    ;
+    
+;==========================================================================
+;TF_SET_OFF routine code
+;==========================================================================
+TF_SET_OFF:			    ;
+    banksel	CCPR1L		    ;set thrust fan duty cycle to OFF
+    movlw	TF_OFF		    ;
+    movwf	CCPR1L		    ;
+    return			    ;
 	
 ;==========================================================================
 ;SRVA_ON routine code
 ;==========================================================================
-SRVA_ON:			;
-	movlw	SRVA_ENG        ;set servo A pw to ENGAGED
-	movwf	SRVA_PW		;
-	bsf	FLAGS,SRVA_ENGD	;
-	return			;
+SRVA_ON:			    ;
+	movlw	SRVA_ENG	    ;set servo A pw to ENGAGED
+	movwf	SRVA_PW		    ;
+	bsf	FLAGS,SRVA_ENGD	    ;
+	return			    ;
 	
 ;==========================================================================
 ;SRVA_OFF routine code
 ;==========================================================================
-SRVA_OFF:		        ;
-	movlw	SRVA_DIS	;set servo A pw to DISENGAGED
-	movwf	SRVA_PW		;
-	bcf	FLAGS,SRVA_ENGD	;
-	return			;
+SRVA_OFF:			    ;
+	movlw	SRVA_DIS	    ;set servo A pw to DISENGAGED
+	movwf	SRVA_PW		    ;
+	bcf	FLAGS,SRVA_ENGD	    ;
+	return			    ;
 
 ;==========================================================================
 ;SRVB_ON routine code
 ;==========================================================================
-SRVB_ON:			;
-	movlw	SRVB_ENG        ;set servo B pw to ENGAGED
-	movwf	SRVB_PW		;
-	bsf	FLAGS,SRVB_ENGD	;
-	return			;
+SRVB_ON:			    ;
+	movlw	SRVB_ENG	    ;set servo B pw to ENGAGED
+	movwf	SRVB_PW		    ;
+	bsf	FLAGS,SRVB_ENGD	    ;
+	return			    ;
 	
 ;==========================================================================
 ;SRVB_OFF routine code
 ;==========================================================================
-SRVB_OFF:		        ;
-	movlw	SRVB_DIS	;set servo B pw to DISENGAGED
-	movwf	SRVB_PW		;
-	bcf	FLAGS,SRVB_ENGD	;
-	return			;
-	
-;==========================================================================
-;TF_CNTRL routine code
-;==========================================================================
-TF_CNTRL:			    ;
-	incf	TF_SIND,F	    ;load new value into tf timer
-	movf	TF_SIND,W	    ; - increment index ****TODO**** NO OVERFLOW PROTECTION!
-	call	TF_TIME_SEQ	    ; - get next time from sequence
-	movwf	TF_TMR		    ; - put it in timer
-	movf	TF_SIND,W	    ;
-	call	TF_DC_SEQ	    ; - get next duty cycle from sequence
-	movwf	TF_DC		    ;
-	call	TF_SET_DC	    ;set the thrust fan PWM duty cycle
+SRVB_OFF:			    ;
+	movlw	SRVB_DIS	    ;set servo B pw to DISENGAGED
+	movwf	SRVB_PW		    ;
+	bcf	FLAGS,SRVB_ENGD	    ;
 	return			    ;
 	
 ;==========================================================================
-;TF_SET_DC routine code
+;LIFT_ON routine code
 ;==========================================================================
-TF_SET_DC:			    ;
+LIFT_ON:			    ;
+	banksel	PORTC		    ;turn ON the lift fan
+	bsf	PORTC,LIFT_CNTRL    ;
+	return			    ;
     
-    ;***** TODO **** check for positive/negative dc values & adjust direction pin
-    
-    ;if forward:
-    banksel PORTC	        ;adjust direction pin
-    bcf	    PORTC,TF_DIR        ; 
-    banksel	CCPR1L		;load new dc
-    movf	TF_DC,W		;
-    movwf	CCPR1L		;
-    
-;    ;if reverse:
-;    banksel PORTC
-;    bsf	    PORTC,TF_DIR
-    
-    return			    ;
+;==========================================================================
+;LIFT_OFF routine code
+;==========================================================================
+LIFT_OFF:			    ;
+	banksel	PORTC		    ;turn OFF the lift fan
+	bcf	PORTC,LIFT_CNTRL    ;
+	return			    ;
+	
+	
+;==========================================================================
+;**** RUN STEP BEHAVIOR FUNCTIONS ****
+;==========================================================================	
+RUN_OFF:			    ;case: FERRET off
+	call	TF_SET_OFF	    ;thrust	-	OFF
+	call	SRVA_OFF	    ;servo A    -	OFF
+	call	SRVB_OFF	    ;servo B    -	OFF
+	call	LIFT_OFF	    ;lift	-	OFF
+	return			    ;
+	
+RUN_HRD_BRAKE:			    ;case: hard brake
+	call	TF_SET_OFF	    ;thrust	-	OFF
+	call	SRVA_ON		    ;servo A    -	ON
+	call	SRVB_ON		    ;servo B    -	ON
+	call	LIFT_OFF	    ;lift	-	OFF
+	return			    ;
+	
+RUN_SFT_BRAKE:			    ;case: soft brake
+	call	TF_SET_OFF	    ;thrust	-	OFF
+	call	SRVA_ON		    ;servo A    -	ON
+	call	SRVB_ON		    ;servo B    -	ON
+	call	LIFT_ON		    ;lift	-	ON
+	return			    ;
+	
+RUN_DRIFT:			    ;case: idle drifting
+	call	TF_SET_OFF	    ;thrust	-	OFF
+	call	SRVA_OFF	    ;servo A    -	OFF
+	call	SRVB_OFF	    ;servo B    -	OFF
+	call	LIFT_ON		    ;lift	-	ON
+	return			    ;
+	
+RUN_FULL_FWD:			    ;case: full thrust forward
+	call	TF_SET_FULL	    ;thrust	-	FULL
+	call	SRVA_OFF	    ;servo A    -	OFF
+	call	SRVB_OFF	    ;servo B    -	OFF
+	call	LIFT_ON		    ;lift	-	ON
+	return			    ;
+	
+RUN_HALF_FWD:			    ;case: half thrust forward
+	call	TF_SET_HALF	    ;thrust	-	HALF
+	call	SRVA_OFF	    ;servo A    -	OFF
+	call	SRVB_OFF	    ;servo B    -	OFF
+	call	LIFT_ON		    ;lift	-	ON
+	return			    ;
+	
+RUN_FULL_LEFT:			    ;case: full thrust left turn
+	call	TF_SET_FULL	    ;thrust	-	FULL
+	call	SRVA_ON		    ;servo A    -	ON
+	call	SRVB_OFF	    ;servo B    -	OFF
+	call	LIFT_ON		    ;lift	-	ON
+	return			    ;
+	
+RUN_HALF_LEFT:			    ;case: half thrust left turn
+	call	TF_SET_HALF	    ;thrust	-	HALF
+	call	SRVA_ON		    ;servo A    -	ON
+	call	SRVB_OFF	    ;servo B    -	OFF
+	call	LIFT_ON		    ;lift	-	ON
+	return			    ;
 
+RUN_BRAKE_LEFT:			    ;case: no thrust left turn
+	call	TF_SET_OFF	    ;thrust	-	OFF
+	call	SRVA_ON		    ;servo A    -	ON
+	call	SRVB_OFF	    ;servo B    -	OFF
+	call	LIFT_ON		    ;lift	-	ON
+	return			    ;
+	
+RUN_FULL_RIGHT:			    ;case: full thrust right turn
+	call	TF_SET_FULL	    ;thrust	-	FULL
+	call	SRVA_OFF	    ;servo A    -	OFF
+	call	SRVB_ON		    ;servo B    -	ON
+	call	LIFT_ON		    ;lift	-	ON
+	return			    ;
+	
+RUN_HALF_RIGHT:			    ;case: half thrust right turn
+	call	TF_SET_HALF	    ;thrust	-	HALF
+	call	SRVA_OFF	    ;servo A    -	OFF
+	call	SRVB_ON		    ;servo B    -	ON
+	call	LIFT_ON		    ;lift	-	ON
+	return			    ;
+	
+RUN_BRAKE_RIGHT:		    ;case: no thrust right turn
+	call	TF_SET_OFF	    ;thrust	-	OFF
+	call	SRVA_OFF	    ;servo A    -	OFF
+	call	SRVB_ON		    ;servo B    -	ON
+	call	LIFT_ON		    ;lift	-	ON
+	return			    ;
+	
 ;==========================================================================
 ;Utility functions
 ;==========================================================================	   

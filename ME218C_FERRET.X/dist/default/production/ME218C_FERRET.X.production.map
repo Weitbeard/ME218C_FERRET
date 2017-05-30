@@ -1,5 +1,5 @@
 MPLINK 5.08, LINKER
-Linker Map File - Created Sat May 20 17:08:32 2017
+Linker Map File - Created Tue May 30 03:44:27 2017
 
                                  Section Info
                   Section       Type    Address   Location Size(Bytes)
@@ -7,10 +7,10 @@ Linker Map File - Created Sat May 20 17:08:32 2017
                    .reset       code   0x000000    program   0x000002
                    .cinit    romdata   0x000001    program   0x000004
                    .ivect       code   0x000004    program   0x000002
-                  .tables       code   0x000005    program   0x000042
-                    .main       code   0x000026    program   0x000210
+                  .tables       code   0x000005    program   0x000038
+                    .main       code   0x000021    program   0x000298
 .config_2007_BUILD/DEFAULT/PRODUCTION/FERRET_       code   0x002007    program   0x000002
-                    .vars      udata   0x000070       data   0x00000e
+                    .vars      udata   0x000070       data   0x00000d
 
 
 
@@ -18,58 +18,75 @@ Linker Map File - Created Sat May 20 17:08:32 2017
                                Start         End      
                            ---------   ---------      
                             0x000000    0x000002      
-                            0x000004    0x00012d      
+                            0x000004    0x00016c      
                             0x002007    0x002007      
-            302 out of 4359 program addresses used, program memory utilization is 6%
+            365 out of 4359 program addresses used, program memory utilization is 8%
 
 
 
                               Symbols - Sorted by Name
                      Name    Address   Location    Storage File                     
                 ---------  ---------  ---------  --------- ---------                
-             DEBOUNCE_END   0x0000be    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-           DEBOUNCE_START   0x0000b1    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-          DEBOUNCING_LOOP   0x0000f4    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                END_CHASE   0x0000d3    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-            END_TMR1_OVFL   0x000101    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                INIT_VARS   0x000085    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                 IOC_RESP   0x0000ad    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                 ISR_IOCA   0x000094    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                  ISR_POP   0x0000a6    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                 ISR_PUSH   0x00008f    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                   ISR_T0   0x000098    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                   ISR_T1   0x00009e    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                MAIN_LOOP   0x000083    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-               MAIN_SETUP   0x000026    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-             RUNNING_LOOP   0x0000f9    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                 SRVA_OFF   0x000114    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                  SRVA_ON   0x000110    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                 SRVA_SEQ   0x000005    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                SRV_CNTRL   0x000109    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-              START_CHASE   0x0000c6    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                 TF_CNTRL   0x000118    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                TF_DC_SEQ   0x00001b    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                TF_SET_DC   0x000121    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-              TF_TIME_SEQ   0x000010    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                TMR0_OVFL   0x0000df    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                TMR1_OVFL   0x0000ee    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                TOGGLE_HB   0x000102    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-          TOGGLE_TEST_LED   0x000129    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-             WAIT_4_CLOCK   0x00002a    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-             WAIT_4_CYCLE   0x00007b    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                  DEB_TMR   0x000079       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                    FLAGS   0x00007a       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                   HB_TMR   0x000078       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+             DEBOUNCE_END   0x0000b0    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+           DEBOUNCE_START   0x0000a3    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+          DEBOUNCING_LOOP   0x0000e4    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                END_CHASE   0x0000c3    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+            END_TMR1_OVFL   0x0000ee    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                INIT_VARS   0x00007d    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                 IOC_RESP   0x00009f    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                 ISR_IOCA   0x000086    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                  ISR_POP   0x000098    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                 ISR_PUSH   0x000081    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                   ISR_T0   0x00008a    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                   ISR_T1   0x000090    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                 LIFT_OFF   0x000128    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                  LIFT_ON   0x000124    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                MAIN_LOOP   0x00007b    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+               MAIN_SETUP   0x000021    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+               NEXT_CYCLE   0x0000fc    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+             RUNNING_LOOP   0x0000e9    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+           RUN_BRAKE_LEFT   0x000154    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+          RUN_BRAKE_RIGHT   0x000163    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                RUN_CNTRL   0x0000f6    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                RUN_DRIFT   0x00013b    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+             RUN_FULL_FWD   0x000140    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+            RUN_FULL_LEFT   0x00014a    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+           RUN_FULL_RIGHT   0x000159    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+             RUN_HALF_FWD   0x000145    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+            RUN_HALF_LEFT   0x00014f    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+           RUN_HALF_RIGHT   0x00015e    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+            RUN_HRD_BRAKE   0x000131    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                  RUN_OFF   0x00012c    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+            RUN_SFT_BRAKE   0x000136    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                 RUN_STEP   0x000100    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+             RUN_STEP_SEQ   0x000005    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+            RUN_STEP_TIME   0x000013    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                 SRVA_OFF   0x000118    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                  SRVA_ON   0x000114    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                 SRVB_OFF   0x000120    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                  SRVB_ON   0x00011c    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+              START_CHASE   0x0000b8    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+              TF_SET_FULL   0x000105    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+              TF_SET_HALF   0x00010a    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+               TF_SET_OFF   0x00010f    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                TMR0_OVFL   0x0000c8    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                TMR1_OVFL   0x0000de    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                TOGGLE_HB   0x0000ef    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+          TOGGLE_TEST_LED   0x000168    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+             WAIT_4_CLOCK   0x000025    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+             WAIT_4_CYCLE   0x000073    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                 CYCL_CNT   0x000073       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                  DEB_TMR   0x00007a       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                    FLAGS   0x00007b       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                   HB_TMR   0x000079       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
               PCLATH_TEMP   0x000072       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                 RUN_INDX   0x00007c       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                  RUN_TMR   0x000078       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
                   SRVA_PW   0x000075       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                SRVA_SIND   0x00007b       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                 SRVA_TMR   0x000076       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                  SRV_CNT   0x000073       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                  SRV_TMR   0x000074       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                  SRVB_PW   0x000076       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                  SRV_CNT   0x000074       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                  SRV_TMR   0x000077       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
               STATUS_TEMP   0x000071       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                    TF_DC   0x00007d       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                  TF_SIND   0x00007c       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                   TF_TMR   0x000077       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
                    W_TEMP   0x000070       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
 
 
@@ -77,49 +94,66 @@ Linker Map File - Created Sat May 20 17:08:32 2017
                               Symbols - Sorted by Address
                      Name    Address   Location    Storage File                     
                 ---------  ---------  ---------  --------- ---------                
-                 SRVA_SEQ   0x000005    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-              TF_TIME_SEQ   0x000010    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                TF_DC_SEQ   0x00001b    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-               MAIN_SETUP   0x000026    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-             WAIT_4_CLOCK   0x00002a    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-             WAIT_4_CYCLE   0x00007b    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                MAIN_LOOP   0x000083    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                INIT_VARS   0x000085    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                 ISR_PUSH   0x00008f    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                 ISR_IOCA   0x000094    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                   ISR_T0   0x000098    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                   ISR_T1   0x00009e    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                  ISR_POP   0x0000a6    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                 IOC_RESP   0x0000ad    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-           DEBOUNCE_START   0x0000b1    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-             DEBOUNCE_END   0x0000be    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-              START_CHASE   0x0000c6    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                END_CHASE   0x0000d3    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                TMR0_OVFL   0x0000df    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                TMR1_OVFL   0x0000ee    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-          DEBOUNCING_LOOP   0x0000f4    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-             RUNNING_LOOP   0x0000f9    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-            END_TMR1_OVFL   0x000101    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                TOGGLE_HB   0x000102    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                SRV_CNTRL   0x000109    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                  SRVA_ON   0x000110    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                 SRVA_OFF   0x000114    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                 TF_CNTRL   0x000118    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                TF_SET_DC   0x000121    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-          TOGGLE_TEST_LED   0x000129    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+             RUN_STEP_SEQ   0x000005    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+            RUN_STEP_TIME   0x000013    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+               MAIN_SETUP   0x000021    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+             WAIT_4_CLOCK   0x000025    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+             WAIT_4_CYCLE   0x000073    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                MAIN_LOOP   0x00007b    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                INIT_VARS   0x00007d    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                 ISR_PUSH   0x000081    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                 ISR_IOCA   0x000086    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                   ISR_T0   0x00008a    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                   ISR_T1   0x000090    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                  ISR_POP   0x000098    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                 IOC_RESP   0x00009f    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+           DEBOUNCE_START   0x0000a3    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+             DEBOUNCE_END   0x0000b0    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+              START_CHASE   0x0000b8    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                END_CHASE   0x0000c3    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                TMR0_OVFL   0x0000c8    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                TMR1_OVFL   0x0000de    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+          DEBOUNCING_LOOP   0x0000e4    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+             RUNNING_LOOP   0x0000e9    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+            END_TMR1_OVFL   0x0000ee    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                TOGGLE_HB   0x0000ef    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                RUN_CNTRL   0x0000f6    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+               NEXT_CYCLE   0x0000fc    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                 RUN_STEP   0x000100    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+              TF_SET_FULL   0x000105    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+              TF_SET_HALF   0x00010a    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+               TF_SET_OFF   0x00010f    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                  SRVA_ON   0x000114    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                 SRVA_OFF   0x000118    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                  SRVB_ON   0x00011c    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                 SRVB_OFF   0x000120    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                  LIFT_ON   0x000124    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                 LIFT_OFF   0x000128    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                  RUN_OFF   0x00012c    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+            RUN_HRD_BRAKE   0x000131    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+            RUN_SFT_BRAKE   0x000136    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                RUN_DRIFT   0x00013b    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+             RUN_FULL_FWD   0x000140    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+             RUN_HALF_FWD   0x000145    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+            RUN_FULL_LEFT   0x00014a    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+            RUN_HALF_LEFT   0x00014f    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+           RUN_BRAKE_LEFT   0x000154    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+           RUN_FULL_RIGHT   0x000159    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+           RUN_HALF_RIGHT   0x00015e    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+          RUN_BRAKE_RIGHT   0x000163    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+          TOGGLE_TEST_LED   0x000168    program     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
                    W_TEMP   0x000070       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
               STATUS_TEMP   0x000071       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
               PCLATH_TEMP   0x000072       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                  SRV_CNT   0x000073       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                  SRV_TMR   0x000074       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                 CYCL_CNT   0x000073       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                  SRV_CNT   0x000074       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
                   SRVA_PW   0x000075       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                 SRVA_TMR   0x000076       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                   TF_TMR   0x000077       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                   HB_TMR   0x000078       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                  DEB_TMR   0x000079       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                    FLAGS   0x00007a       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                SRVA_SIND   0x00007b       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                  TF_SIND   0x00007c       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
-                    TF_DC   0x00007d       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                  SRVB_PW   0x000076       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                  SRV_TMR   0x000077       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                  RUN_TMR   0x000078       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                   HB_TMR   0x000079       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                  DEB_TMR   0x00007a       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                    FLAGS   0x00007b       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
+                 RUN_INDX   0x00007c       data     static C:\Users\Luke\Documents\Github_Repositories\ME218C_FERRET\ME218C_FERRET.X\FERRET_Control.asm
 
 
