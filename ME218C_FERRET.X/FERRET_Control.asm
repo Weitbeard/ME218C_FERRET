@@ -2,10 +2,11 @@
 ;FERRET Controller - 218C Project Infrastructure - Spring '17
 ;History:
 ;Author	-   Date -	Notes -
+;LW	    05/28/17	Added second servo and refined sequencing
 ;LW	    05/12/17	Core functionality tested and debugged with hardware
 ;LW	    05/11/17	Implemented remainder of requirements & added
 ;			    mpasm relocatable code directives
-;LW	    05/09/17	Implemented timers, run button, and heartbeat LED,
+;LW	    05/09/17	Implemented timers, run button, heartbeat LED,
 ;			    and lift fan control
 ;LW	    04/28/17	Revised template for PWM on CCP (Timer2)
 ;LW	    04/20/17	Initial copy of old template code  
@@ -24,7 +25,8 @@
 #define HB_LED	    RA0		;Heartbeat LED to show PIC activity
 #define RUN_IND	    RA1		;LED to indicate RUNNING status
 #define RUN_BTN	    RA2		;Button to start a run routine
-#define	SRVA_CNTRL  RC2		;Servo A control signal output
+#define	SRVB_CNTRL  RC1		;Servo B (Right) control signal output
+#define	SRVA_CNTRL  RC2		;Servo A (Left) control signal output
 #define	TF_DIR	    RC4		;Thrust fan direction output pin
 #define	TF_PWM	    RC5		;Thrust fan PWM output pin
 #define LIFT_CNTRL  RC6		;Lift fan control pin
@@ -33,6 +35,8 @@
 #define	TWENTY_MS   H'4E'	;time = hex value * 0.256ms
 #define	SRVA_ENG    H'08'	;Pulse width ~ 2ms
 #define	SRVA_DIS    H'06'	;Pulse width ~ 1.5ms
+#define	SRVB_ENG    H'08'	;Pulse width ~ 1.5ms
+#define	SRVB_DIS    H'06'	;Pulse width ~ 2ms
 
 ;Timer 1 defines (Approximate time values)
 #define	HALF_S	    H'0F'	;time = hex value * 32.8ms
@@ -50,7 +54,7 @@
 ;Timer 2 defines (Thrust fan PWM configurations)
 #define	TF_PERIOD   H'65'	;Period for thrust fan PWM (PR2 value)
 #define	TF_DEF_DC   H'0D'	;Default thrust fan PWM duty cycle (~50%)
-#define	FULL_FWD    H'00'	;100% duty cycle forward
+#define	FULL_FWD    TF_PERIOD	;100% duty cycle forward
 #define HALF_FWD    H'0D'	;50% duty cycle forward
 #define STOPPED	    H'00'	;0% duty cycle
 #define HALF_REV    H'00'	;50% duty cycle reverse
@@ -60,27 +64,33 @@
 #define	RUNNING	    0		;flag to note if FERRET is in RUNNING state
 #define DEBOUNCING  1		;flag to note if FERRET is in DEBOUNCING state
 #define SRVA_ENGD   2		;flag to note if servo A is ENGAGED
+#define SRVB_ENGD   3		;flag to note if servo B is ENGAGED
     
 ;Misc. & readability defines
 #define	HB_ON	    H'01'	;bit value in PORTA to turn the HB LED on 
     
-;Variable assignment (stored in common access bank registers)
-.vars	udata_shr   H'70'
-; Temp register storage for ISR
+;Temporary register storage for ISR
+.temps	udata	    H'20'
 W_TEMP	    res 1   ;temporary storage for W register
 STATUS_TEMP res 1   ;temporary storage for STATUS register
 PCLATH_TEMP res 1   ;temporary storage for PCLATH register
+    
+;Variable assignment (stored in common access bank registers)
+.vars	udata_shr   H'70'
 ; Software timers/counters
 SRV_CNT	    res 1   ;servo tick counter
 SRV_TMR	    res 1   ;general servo control signal timer
 SRVA_PW	    res 1   ;servo A control signal PW
 SRVA_TMR    res 1   ;servo A ON/OFF timer
+SRVB_PW	    res 1   ;servo B control signal PW
+SRVB_TMR    res 1   ;servo B ON/OFF timer
 TF_TMR	    res 1   ;thrust fan ON/OFF timer
 HB_TMR	    res 1   ;heartbeat blink timer
 DEB_TMR	    res 1   ;button debounce timer
 ; Misc. vars
 FLAGS	    res 1   ;register to hold various boolean flags
 SRVA_SIND   res	1   ;servo A sequence index
+SRVB_SIND   res	1   ;servo B sequence index
 TF_SIND	    res	1   ;thrust fan sequence index
 TF_DC	    res 1   ;temporary DC value storage for thrust fan
 ;End of variable assignment
@@ -138,15 +148,15 @@ TF_TIME_SEQ:		    ;ordered time values to be used with thrust fan
 TF_DC_SEQ:		    ;ordered DC values to be used with thrust fan
 	addwf	PCL,F	    ;
 	retlw	STOPPED	    ;1st
-	retlw   HALF_FWD    ;2
+	retlw   FULL_FWD    ;2
 	retlw	STOPPED	    ;3
-	retlw   HALF_FWD    ;4
+	retlw   FULL_FWD    ;4
 	retlw	STOPPED	    ;5th
-	retlw   HALF_FWD    ;6
+	retlw   FULL_FWD    ;6
 	retlw	STOPPED	    ;7
-	retlw   HALF_FWD    ;8
+	retlw   FULL_FWD    ;8
 	retlw	STOPPED	    ;9
-	retlw   HALF_FWD    ;10th
+	retlw   FULL_FWD    ;10th
 	; ***** TODO *****
 	
 ;==========================================================================
@@ -416,12 +426,20 @@ TMR0_OVFL:			    ;
 	movwf	SRV_CNT		    ;
 	
 	;Servo A
-	banksel	PORTC		    ;check if SRV_CNT is above SRV_PW
+	banksel	PORTC		    ;check if SRV_CNT is above SRVA_PW
 	subwf	SRVA_PW,W	    ;
 	btfss	STATUS,C	    ; if above, clear SRV_CNTRL pin
 	bcf	PORTC,SRVA_CNTRL    ;
 	btfsc	STATUS,C	    ; else, set SRV_CNTRL pin
 	bsf	PORTC,SRVA_CNTRL    ;
+	
+	;Servo B
+	banksel	PORTC		    ;check if SRV_CNT is above SRVB_PW
+	subwf	SRVB_PW,W	    ;
+	btfss	STATUS,C	    ; if above, clear SRV_CNTRL pin
+	bcf	PORTC,SRVB_CNTRL    ;
+	btfsc	STATUS,C	    ; else, set SRV_CNTRL pin
+	bsf	PORTC,SRVB_CNTRL    ;
 	   
 	return			    ;return from the subroutine
 	
@@ -487,7 +505,7 @@ SRV_CNTRL:			    ;
 ;SRVA_ON routine code
 ;==========================================================================
 SRVA_ON:			;
-	movlw	SRVA_ENG        ;set servo A pw to ENGAGED (pw ~2ms)
+	movlw	SRVA_ENG        ;set servo A pw to ENGAGED
 	movwf	SRVA_PW		;
 	bsf	FLAGS,SRVA_ENGD	;
 	return			;
@@ -496,11 +514,29 @@ SRVA_ON:			;
 ;SRVA_OFF routine code
 ;==========================================================================
 SRVA_OFF:		        ;
-	movlw	SRVA_DIS	;set servo A pw to DISENGAGED (~1ms)
+	movlw	SRVA_DIS	;set servo A pw to DISENGAGED
 	movwf	SRVA_PW		;
 	bcf	FLAGS,SRVA_ENGD	;
 	return			;
 
+;==========================================================================
+;SRVB_ON routine code
+;==========================================================================
+SRVB_ON:			;
+	movlw	SRVB_ENG        ;set servo B pw to ENGAGED
+	movwf	SRVB_PW		;
+	bsf	FLAGS,SRVB_ENGD	;
+	return			;
+	
+;==========================================================================
+;SRVB_OFF routine code
+;==========================================================================
+SRVB_OFF:		        ;
+	movlw	SRVB_DIS	;set servo B pw to DISENGAGED
+	movwf	SRVB_PW		;
+	bcf	FLAGS,SRVB_ENGD	;
+	return			;
+	
 ;==========================================================================
 ;TF_CNTRL routine code
 ;==========================================================================
