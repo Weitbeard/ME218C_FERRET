@@ -65,8 +65,8 @@
     
 ;Misc. & readability defines
 #define	HB_ON	    H'01'	;bit value in PORTA to turn the HB LED on
-#define	NUM_CYCLS   H'04'	;number of RUN cycles to repeat per routine
-#define NUM_STEPS   H'0C'	;number of steps per RUN cycle - 1
+#define	NUM_CYCLS   H'FF'	;number of RUN cycles to repeat per routine
+#define NUM_STEPS   H'02'	;number of steps per RUN cycle - 1
     
 ;Variable assignment (stored in common access bank registers)
 .vars	udata_shr   H'70'
@@ -104,38 +104,18 @@ RUN_INDX    res	1   ;RUN sequence index
 ;==========================================================================
 RUN_STEP_SEQ:			    ;
 	addwf	PCL,F		    ;
-	goto	RUN_HRD_BRAKE	    ;1st
-	goto	RUN_SFT_BRAKE	    ;2
+	goto	RUN_DRIFT	    ;1st
+	goto	RUN_FULL_FWD	    ;2
 	goto	RUN_DRIFT	    ;3
-	goto	RUN_HALF_FWD	    ;4
-	goto	RUN_FULL_FWD	    ;5th
-	goto	RUN_DRIFT	    ;6
-	goto	RUN_BRAKE_LEFT	    ;7
-	goto	RUN_HALF_LEFT	    ;8
-	goto	RUN_FULL_LEFT	    ;9
-	goto	RUN_BRAKE_RIGHT	    ;10th
-	goto	RUN_HALF_RIGHT	    ;11
-	goto	RUN_FULL_RIGHT	    ;12
-	goto	RUN_OFF		    ;13
 
 ;==========================================================================
 ;RUN_STEP_TIME lookup table - hardcoded routine times for each step
 ;==========================================================================
 RUN_STEP_TIME:		    ;
 	addwf	PCL,F	    ;
-	retlw	THREE_S	    ;1st
-	retlw   THREE_S	    ;2
+	retlw	FIVE_S	    ;1st
+	retlw   FIVE_S	    ;2
 	retlw   EIGHT_S	    ;3
-	retlw   THREE_S	    ;4
-	retlw   THREE_S	    ;5th
-	retlw   THREE_S	    ;6
-	retlw   THREE_S	    ;7
-	retlw   THREE_S	    ;8
-	retlw   THREE_S	    ;9
-	retlw   THREE_S	    ;10th
-	retlw   THREE_S	    ;11
-	retlw   THREE_S	    ;12
-	retlw   THREE_S	    ;13
 	;total time should be ~44 seconds (x5 cycles)
 	
 ;==========================================================================
@@ -365,6 +345,7 @@ START_CHASE:			    ;
 	clrf	RUN_INDX	    ;reset RUN sequence index
 	movlw	NUM_CYCLS	    ;reset cycle count
 	movwf	CYCL_CNT	    ;
+	call	RUN_CNTRL	    ;run first step
 	return			    ;return from the subroutine
 	
 ;==========================================================================

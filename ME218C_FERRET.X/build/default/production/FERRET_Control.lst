@@ -1,4 +1,4 @@
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE  1
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE  1
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -57,7 +57,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00041 ;Timer 1 defines (Approximate time values)
                       00042 #define HALF_S      H'0F'       ;time = hex value * 32.8ms
                       00043 #define ONE_S       H'1E'
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE  2
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE  2
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -87,8 +87,8 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00065     
                       00066 ;Misc. & readability defines
                       00067 #define HB_ON       H'01'       ;bit value in PORTA to turn the HB LED on
-                      00068 #define NUM_CYCLS   H'04'       ;number of RUN cycles to repeat per routine
-                      00069 #define NUM_STEPS   H'0C'       ;number of steps per RUN cycle - 1
+                      00068 #define NUM_CYCLS   H'FF'       ;number of RUN cycles to repeat per routine
+                      00069 #define NUM_STEPS   H'02'       ;number of steps per RUN cycle - 1
                       00070     
                       00071 ;Variable assignment (stored in common access bank registers)
                       00072 .vars   udata_shr   H'70'
@@ -116,7 +116,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00094 
                       00095 ;Interrupt vector code organization
                       00096 .ivect  code    H'04'       ;unconditional branch to ISR at (4) memory location
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE  3
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE  3
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -132,639 +132,620 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00104 ;==========================================================================
 0005                  00105 RUN_STEP_SEQ:                       ;
 0005   0782           00106         addwf   PCL,F               ;
-0006   2???           00107         goto    RUN_HRD_BRAKE       ;1st
-0007   2???           00108         goto    RUN_SFT_BRAKE       ;2
+0006   2???           00107         goto    RUN_DRIFT           ;1st
+0007   2???           00108         goto    RUN_FULL_FWD        ;2
 0008   2???           00109         goto    RUN_DRIFT           ;3
-0009   2???           00110         goto    RUN_HALF_FWD        ;4
-000A   2???           00111         goto    RUN_FULL_FWD        ;5th
-000B   2???           00112         goto    RUN_DRIFT           ;6
-000C   2???           00113         goto    RUN_BRAKE_LEFT      ;7
-000D   2???           00114         goto    RUN_HALF_LEFT       ;8
-000E   2???           00115         goto    RUN_FULL_LEFT       ;9
-000F   2???           00116         goto    RUN_BRAKE_RIGHT     ;10th
-0010   2???           00117         goto    RUN_HALF_RIGHT      ;11
-0011   2???           00118         goto    RUN_FULL_RIGHT      ;12
-0012   2???           00119         goto    RUN_OFF             ;13
-                      00120 
+                      00110 
+                      00111 ;==========================================================================
+                      00112 ;RUN_STEP_TIME lookup table - hardcoded routine times for each step
+                      00113 ;==========================================================================
+0009                  00114 RUN_STEP_TIME:              ;
+0009   0782           00115         addwf   PCL,F       ;
+000A   3499           00116         retlw   FIVE_S      ;1st
+000B   3499           00117         retlw   FIVE_S      ;2
+000C   34F4           00118         retlw   EIGHT_S     ;3
+                      00119         ;total time should be ~44 seconds (x5 cycles)
+                      00120         
                       00121 ;==========================================================================
-                      00122 ;RUN_STEP_TIME lookup table - hardcoded routine times for each step
+                      00122 ;MAIN setup code
                       00123 ;==========================================================================
-0013                  00124 RUN_STEP_TIME:              ;
-0013   0782           00125         addwf   PCL,F       ;
-0014   345C           00126         retlw   THREE_S     ;1st
-0015   345C           00127         retlw   THREE_S     ;2
-0016   34F4           00128         retlw   EIGHT_S     ;3
-0017   345C           00129         retlw   THREE_S     ;4
-0018   345C           00130         retlw   THREE_S     ;5th
-0019   345C           00131         retlw   THREE_S     ;6
-001A   345C           00132         retlw   THREE_S     ;7
-001B   345C           00133         retlw   THREE_S     ;8
-001C   345C           00134         retlw   THREE_S     ;9
-001D   345C           00135         retlw   THREE_S     ;10th
-001E   345C           00136         retlw   THREE_S     ;11
-001F   345C           00137         retlw   THREE_S     ;12
-0020   345C           00138         retlw   THREE_S     ;13
-                      00139         ;total time should be ~44 seconds (x5 cycles)
-                      00140         
-                      00141 ;==========================================================================
-                      00142 ;MAIN setup code
-                      00143 ;==========================================================================
-                      00144 .main   code                    ;begin main body code
-                      00145         
-0000                  00146 MAIN_SETUP:                     ;
-                      00147         ;Clock configuration
-0000   1683 1303      00148         banksel OSCCON          ;configure for 8MHz internal osc speed
-0002   3070           00149         movlw   B'01110000'     ;
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE  4
+                      00124 .main   code                    ;begin main body code
+                      00125         
+0000                  00126 MAIN_SETUP:                     ;
+                      00127         ;Clock configuration
+0000   1683 1303      00128         banksel OSCCON          ;configure for 8MHz internal osc speed
+0002   3070           00129         movlw   B'01110000'     ;
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0003   008F           00130         movwf   OSCCON          ;
+0004                  00131 WAIT_4_CLOCK:                   ;wait for stable clock
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0004   1D0F           00132         btfss   OSCCON,HTS      ;
+0005   2???           00133         goto    WAIT_4_CLOCK    ;
+                      00134 
+                      00135         ;Pin configuration (Port A & C Basic Preparation)
+                      00136         ; Port Clearing
+0006   1283 1303      00137         banksel PORTA           ;clear port A (PORTA register)
+0008   0185           00138         clrf    PORTA           ;
+0009   1283 1303      00139         banksel PORTC           ;clear port C (PORTC register)
+000B   0187           00140         clrf    PORTC           ;
+                      00141         ; Mode Configuration
+000C   1283 1703      00142         banksel ANSEL           ;set all I/O pins as digital (ANSEL(H) register)
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+000E   019E           00143         clrf    ANSEL           ;
+000F   1283 1703      00144         banksel ANSELH          ;
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0011   019F           00145         clrf    ANSELH          ;
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE  4
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
+                      00146         ; Direction Configuration
+0012   1683 1303      00147         banksel TRISA           ;set all A pins as outputs (TRISA register)
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0003   008F           00150         movwf   OSCCON          ;
-0004                  00151 WAIT_4_CLOCK:                   ;wait for stable clock
+0014   0185           00148         clrf    TRISA           ;and set the Run button pin to an input
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0004   1D0F           00152         btfss   OSCCON,HTS      ;
-0005   2???           00153         goto    WAIT_4_CLOCK    ;
-                      00154 
-                      00155         ;Pin configuration (Port A & C Basic Preparation)
-                      00156         ; Port Clearing
-0006   1283 1303      00157         banksel PORTA           ;clear port A (PORTA register)
-0008   0185           00158         clrf    PORTA           ;
-0009   1283 1303      00159         banksel PORTC           ;clear port C (PORTC register)
-000B   0187           00160         clrf    PORTC           ;
-                      00161         ; Mode Configuration
-000C   1283 1703      00162         banksel ANSEL           ;set all I/O pins as digital (ANSEL(H) register)
+0015   1505           00149         bsf     TRISA,RUN_BTN   ;
+0016   1683 1303      00150         banksel TRISC           ;set all C pins as outputs (TRISC register)
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-000E   019E           00163         clrf    ANSEL           ;
-000F   1283 1703      00164         banksel ANSELH          ;
+0018   0187           00151         clrf    TRISC           ;
+                      00152         
+                      00153         ;Run Button IOC configuration
+0019   1283 1303      00154         banksel INTCON          ;enable IOC in control register
+001B   100B           00155         bcf     INTCON,RABIF    ; - clear flag
+001C   158B           00156         bsf     INTCON,RABIE    ; - enable interrupt
+001D   1683 1303      00157         banksel IOCA            ;locally enable IOC for run button
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0011   019F           00165         clrf    ANSELH          ;
-                      00166         ; Direction Configuration
-0012   1683 1303      00167         banksel TRISA           ;set all A pins as outputs (TRISA register)
+001F   1516           00158         bsf     IOCA,RUN_BTN    ;
+                      00159         
+                      00160         ;Timer 0 counter configuration (multi-servo control)
+0020   1683 1303      00161         banksel OPTION_REG      ;
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0014   0185           00168         clrf    TRISA           ;and set the Run button pin to an input
+0022   1281           00162         bcf     OPTION_REG,T0CS ;set clock source as FOSC/4 (TOCS in OPTION_REG)
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0015   1505           00169         bsf     TRISA,RUN_BTN   ;
-0016   1683 1303      00170         banksel TRISC           ;set all C pins as outputs (TRISC register)
+0023   1181           00163         bcf     OPTION_REG,PSA  ;assign prescaler to Timer 0
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0018   0187           00171         clrf    TRISC           ;
-                      00172         
-                      00173         ;Run Button IOC configuration
-0019   1283 1303      00174         banksel INTCON          ;enable IOC in control register
-001B   100B           00175         bcf     INTCON,RABIF    ; - clear flag
-001C   158B           00176         bsf     INTCON,RABIE    ; - enable interrupt
-001D   1683 1303      00177         banksel IOCA            ;locally enable IOC for run button
+0024   1001           00164         bcf     OPTION_REG,PS0  ;set min. prescale value (PS<2:0> in OPTION_REG)
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-001F   1516           00178         bsf     IOCA,RUN_BTN    ;
-                      00179         
-                      00180         ;Timer 0 counter configuration (multi-servo control)
-0020   1683 1303      00181         banksel OPTION_REG      ;
+0025   1081           00165         bcf     OPTION_REG,PS1  ; -> (Prescale) * (256 * 4) / FOSC = Period
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0022   1281           00182         bcf     OPTION_REG,T0CS ;set clock source as FOSC/4 (TOCS in OPTION_REG)
+0026   1101           00166         bcf     OPTION_REG,PS2  ; -> (2) * (256 * 4) / FOSC = 0.256ms
+0027   1283 1303      00167         banksel INTCON          ;
+0029   110B           00168         bcf     INTCON,T0IF     ;clear any existing Timer 0 interrupt flags
+002A   168B           00169         bsf     INTCON,T0IE     ;enable Timer 0 overflow interrupt
+                      00170         
+                      00171         ;Timer 1 configuration (heartbeat & random timers)
+002B   1283 1303      00172         banksel T1CON           ;set clock source to FOSC/4 (TMR1CS in T1CON)
+002D   1090           00173         bcf     T1CON,TMR1CS    ;
+002E   1210           00174         bcf     T1CON,T1CKPS0   ;set prescale to 1:1 (T1CKPS<1:0> in T1CON
+002F   1290           00175         bcf     T1CON,T1CKPS1   ;
+0030   1283 1303      00176         banksel PIR1            ;enable rollover interrupt:
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0023   1181           00183         bcf     OPTION_REG,PSA  ;assign prescaler to Timer 0
+0032   100C           00177         bcf     PIE1,TMR1IF     ; - clear interrupt flag (TMR1IF in PIR1)
+0033   1683 1303      00178         banksel PIE1            ; - local enable (TMR1IE in PIE1)
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0024   1001           00184         bcf     OPTION_REG,PS0  ;set min. prescale value (PS<2:0> in OPTION_REG)
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0025   1081           00185         bcf     OPTION_REG,PS1  ; -> (Prescale) * (256 * 4) / FOSC = Period
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0026   1101           00186         bcf     OPTION_REG,PS2  ; -> (2) * (256 * 4) / FOSC = 0.256ms
-0027   1283 1303      00187         banksel INTCON          ;
-0029   110B           00188         bcf     INTCON,T0IF     ;clear any existing Timer 0 interrupt flags
-002A   168B           00189         bsf     INTCON,T0IE     ;enable Timer 0 overflow interrupt
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE  5
+0035   140C           00179         bsf     PIE1,TMR1IE     ;
+0036   1283 1303      00180         banksel INTCON          ; - peripheral enable (PEIE in INTCON)
+0038   170B           00181         bsf     INTCON,PEIE     ;
+0039   1283 1303      00182         banksel T1CON           ;turn on the timer (TMR1ON in T1CON)
+003B   1410           00183         bsf     T1CON,TMR1ON    ;
+                      00184         
+                      00185         ;PWM configuration (Thrust Fan Control):
+                      00186         ;   Using Method from Datasheet:
+                      00187         ;       1. Disable PWM pin (CCP1) by setting associated TRIS bit
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE  5
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00190         
-                      00191         ;Timer 1 configuration (heartbeat & random timers)
-002B   1283 1303      00192         banksel T1CON           ;set clock source to FOSC/4 (TMR1CS in T1CON)
-002D   1090           00193         bcf     T1CON,TMR1CS    ;
-002E   1210           00194         bcf     T1CON,T1CKPS0   ;set prescale to 1:1 (T1CKPS<1:0> in T1CON
-002F   1290           00195         bcf     T1CON,T1CKPS1   ;
-0030   1283 1303      00196         banksel PIR1            ;enable rollover interrupt:
+                      00188         ;       2. Set PWM period by loading PR2 register
+                      00189         ;       3. Configure CCP module for PWM by loading CCP1CON
+                      00190         ;       4. Set duty cycle by loading CCPR1L & DC1B<1:0> of CCP1CON
+                      00191         ;       5. Configure and start Timer2
+                      00192         ;           a. Clear TMR2IF interrupt flag in PIR1
+                      00193         ;           b. Set Timer2 prescale value by loading T2CKPS in T2CON
+                      00194         ;           c. Enable Timer2 by setting TMR2ON in T2CON
+                      00195         ;       6. Enable PWM ouput
+                      00196         ;           a. Wait until Timer2 overflows (TMR2IF interrupt flag)
+                      00197         ;           b. Enable CCP1 pin by clearing associated TRIS bit
+                      00198         
+                      00199         ;   Example Calculations:
+                      00200         ;   PWM Period = [(PR2)+1]*(4/FOSC)*TMR2PreScale
+                      00201         ;       -> PR2 = [PWM Period]*FOSC/(4*TMR2PreScale)-1
+                      00202         ;       ->     = [1/5kHz]*8MHz/(4*4)-1 = 99 (0x63)
+                      00203         ;   Duty Cycle = (CCPR1L:CCP1CON<5:4>)/[4*(PR2+1)]
+                      00204         ;       -> CCPR1L:CCP1CON<5:4> = [Duty Cycle]*[4*(PR2+1)]
+                      00205         ;       ->                     = [0.5]*[4*99+1] = 50 (0x32)
+                      00206         
+003C   1683 1303      00207         banksel TRISC           ; Step 1
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0032   100C           00197         bcf     PIE1,TMR1IF     ; - clear interrupt flag (TMR1IF in PIR1)
-0033   1683 1303      00198         banksel PIE1            ; - local enable (TMR1IE in PIE1)
+003E   1687           00208         bsf     TRISC,TF_PWM    ;
+003F   1683 1303      00209         banksel PR2             ; Step 2
+0041   3065           00210         movlw   TF_PERIOD       ;
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0035   140C           00199         bsf     PIE1,TMR1IE     ;
-0036   1283 1303      00200         banksel INTCON          ; - peripheral enable (PEIE in INTCON)
-0038   170B           00201         bsf     INTCON,PEIE     ;
-0039   1283 1303      00202         banksel T1CON           ;turn on the timer (TMR1ON in T1CON)
-003B   1410           00203         bsf     T1CON,TMR1ON    ;
-                      00204         
-                      00205         ;PWM configuration (Thrust Fan Control):
-                      00206         ;   Using Method from Datasheet:
-                      00207         ;       1. Disable PWM pin (CCP1) by setting associated TRIS bit
-                      00208         ;       2. Set PWM period by loading PR2 register
-                      00209         ;       3. Configure CCP module for PWM by loading CCP1CON
-                      00210         ;       4. Set duty cycle by loading CCPR1L & DC1B<1:0> of CCP1CON
-                      00211         ;       5. Configure and start Timer2
-                      00212         ;           a. Clear TMR2IF interrupt flag in PIR1
-                      00213         ;           b. Set Timer2 prescale value by loading T2CKPS in T2CON
-                      00214         ;           c. Enable Timer2 by setting TMR2ON in T2CON
-                      00215         ;       6. Enable PWM ouput
-                      00216         ;           a. Wait until Timer2 overflows (TMR2IF interrupt flag)
-                      00217         ;           b. Enable CCP1 pin by clearing associated TRIS bit
-                      00218         
-                      00219         ;   Example Calculations:
-                      00220         ;   PWM Period = [(PR2)+1]*(4/FOSC)*TMR2PreScale
-                      00221         ;       -> PR2 = [PWM Period]*FOSC/(4*TMR2PreScale)-1
-                      00222         ;       ->     = [1/5kHz]*8MHz/(4*4)-1 = 99 (0x63)
-                      00223         ;   Duty Cycle = (CCPR1L:CCP1CON<5:4>)/[4*(PR2+1)]
-                      00224         ;       -> CCPR1L:CCP1CON<5:4> = [Duty Cycle]*[4*(PR2+1)]
-                      00225         ;       ->                     = [0.5]*[4*99+1] = 50 (0x32)
-                      00226         
-003C   1683 1303      00227         banksel TRISC           ; Step 1
+0042   0092           00211         movwf   PR2             ;
+0043   1283 1303      00212         banksel CCP1CON         ; Step 3
+0045   300C           00213         movlw   B'00001100'     ; *include 2 LSBs of duty cycle here (00)*
+0046   0097           00214         movwf   CCP1CON         ;
+0047   2???           00215         call    TF_SET_OFF      ; Step 4
+0048   1283 1303      00216         banksel PIR1            ; Step 5a
+004A   108C           00217         bcf     PIR1,TMR2IF     ;
+004B   1283 1303      00218         banksel T2CON           ; Step 5b
+004D   3001           00219         movlw   B'00000001'     ;
+004E   0092           00220         movwf   T2CON           ;
+004F   1512           00221         bsf     T2CON,TMR2ON    ; Step 5c
+0050   1283 1303      00222         banksel PIR1            ; Step 6a
+0052                  00223 WAIT_4_CYCLE:                   ;
+0052   1C8C           00224         btfss   PIR1,TMR2IF     ;
+0053   2???           00225         goto    WAIT_4_CYCLE    ;
+0054   1683 1303      00226         banksel TRISC           ; Step 6b
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-003E   1687           00228         bsf     TRISC,TF_PWM    ;
-003F   1683 1303      00229         banksel PR2             ; Step 2
-0041   3065           00230         movlw   TF_PERIOD       ;
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0042   0092           00231         movwf   PR2             ;
-0043   1283 1303      00232         banksel CCP1CON         ; Step 3
-0045   300C           00233         movlw   B'00001100'     ; *include 2 LSBs of duty cycle here (00)*
-0046   0097           00234         movwf   CCP1CON         ;
-0047   2???           00235         call    TF_SET_OFF      ; Step 4
-0048   1283 1303      00236         banksel PIR1            ; Step 5a
-004A   108C           00237         bcf     PIR1,TMR2IF     ;
-004B   1283 1303      00238         banksel T2CON           ; Step 5b
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE  6
+0056   1287           00227         bcf     TRISC,TF_PWM    ;
+                      00228         
+                      00229         ;ADC configuration (Thrust Fan Speed Adjust);
+                      00230         ;   Using Method from Datasheet:
+                      00231         ;       1. Configure the analog input pin
+                      00232         ;           a. Set the associated ANSEL bit
+                      00233         ;           b. Set the associated TRIS bit
+                      00234         ;       2. Set the appropriate input channel (CHS bit in ADCON0)
+                      00235         ;       .......etc
+                      00236         ; ********TODO********
+                      00237         
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE  6
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-004D   3001           00239         movlw   B'00000001'     ;
-004E   0092           00240         movwf   T2CON           ;
-004F   1512           00241         bsf     T2CON,TMR2ON    ; Step 5c
-0050   1283 1303      00242         banksel PIR1            ; Step 6a
-0052                  00243 WAIT_4_CYCLE:                   ;
-0052   1C8C           00244         btfss   PIR1,TMR2IF     ;
-0053   2???           00245         goto    WAIT_4_CYCLE    ;
-0054   1683 1303      00246         banksel TRISC           ; Step 6b
+                      00238         ;Init software timer/counter values
+0057   2???           00239         call    INIT_VARS       ;
+                      00240         
+                      00241         ;Enable global interrupts
+0058   178B           00242         bsf     INTCON,GIE      ;
+                      00243         
+0059   2???           00244         goto    MAIN_LOOP       ;once setup complete, go to the run LOOP
+                      00245 
+                      00246 ;==========================================================================
+                      00247 ;MAIN run code LOOP
+                      00248 ;==========================================================================
+005A                  00249 MAIN_LOOP:                      ;
+005A   0000           00250         nop                     ;put any run code here (i.e. event checkers)    
+005B   2???           00251         goto    MAIN_LOOP       ;return to start of run LOOP
+                      00252 
+                      00253 ;==========================================================================
+                      00254 ;INIT_VARS routine code
+                      00255 ;==========================================================================
+005C                  00256 INIT_VARS:                      ;
+005C   300F           00257         movlw   HB_TIME         ;load heartbeat blink time
+005D   00??           00258         movwf   HB_TMR          ;
+005E   01??           00259         clrf    FLAGS           ;clear all program flags
+005F   2???           00260         goto    RUN_OFF         ;disable all motors (turn FERRET OFF)
+                      00261         
+                      00262 ;==========================================================================
+                      00263 ;ISR routine code
+                      00264 ;==========================================================================
+0060                  00265 ISR_PUSH:                           ;
+0060   00??           00266         movwf   W_TEMP              ;start by storing W, STATUS, and PCLATH
+0061   0E03           00267         swapf   STATUS,W            ;  in TEMP registers
+0062   00??           00268         movwf   STATUS_TEMP         ;
+0063   080A           00269         movf    PCLATH,W            ;
+0064   00??           00270         movwf   PCLATH_TEMP         ;
+                      00271         
+0065                  00272 ISR_IOCA:                           ;
+0065   1283 1303      00273         banksel INTCON              ;check if IOC fired on port A
+0067   180B           00274         btfsc   INTCON,RABIF        ; if the RUN button interrupt flag is high
+0068   2???           00275         call    IOC_RESP            ; call IOC response routine
+                      00276         
+0069                  00277 ISR_T0:                             ;
+0069   1283 1303      00278         banksel INTCON              ;check Timer 0 interrupt
+006B   1E8B           00279         btfss   INTCON,T0IE         ; check local interrupt enable status
+006C   2???           00280         goto    ISR_T1              ;  if clear, skip to next section of ISR
+006D   190B           00281         btfsc   INTCON,T0IF         ;  else, check interrupt flag status
+006E   2???           00282         call    TMR0_OVFL           ;    if set, call the Timer 0 ovrflw routine
+                      00283 
+006F                  00284 ISR_T1:                             ;
+006F   1683 1303      00285         banksel PIE1                ;check Timer 1 interrupt
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0056   1287           00247         bcf     TRISC,TF_PWM    ;
-                      00248         
-                      00249         ;ADC configuration (Thrust Fan Speed Adjust);
-                      00250         ;   Using Method from Datasheet:
-                      00251         ;       1. Configure the analog input pin
-                      00252         ;           a. Set the associated ANSEL bit
-                      00253         ;           b. Set the associated TRIS bit
-                      00254         ;       2. Set the appropriate input channel (CHS bit in ADCON0)
-                      00255         ;       .......etc
-                      00256         ; ********TODO********
-                      00257         
-                      00258         ;Init software timer/counter values
-0057   2???           00259         call    INIT_VARS       ;
-                      00260         
-                      00261         ;Enable global interrupts
-0058   178B           00262         bsf     INTCON,GIE      ;
-                      00263         
-0059   2???           00264         goto    MAIN_LOOP       ;once setup complete, go to the run LOOP
-                      00265 
-                      00266 ;==========================================================================
-                      00267 ;MAIN run code LOOP
-                      00268 ;==========================================================================
-005A                  00269 MAIN_LOOP:                      ;
-005A   0000           00270         nop                     ;put any run code here (i.e. event checkers)    
-005B   2???           00271         goto    MAIN_LOOP       ;return to start of run LOOP
-                      00272 
-                      00273 ;==========================================================================
-                      00274 ;INIT_VARS routine code
-                      00275 ;==========================================================================
-005C                  00276 INIT_VARS:                      ;
-005C   300F           00277         movlw   HB_TIME         ;load heartbeat blink time
-005D   00??           00278         movwf   HB_TMR          ;
-005E   01??           00279         clrf    FLAGS           ;clear all program flags
-005F   2???           00280         goto    RUN_OFF         ;disable all motors (turn FERRET OFF)
-                      00281         
-                      00282 ;==========================================================================
-                      00283 ;ISR routine code
-                      00284 ;==========================================================================
-0060                  00285 ISR_PUSH:                           ;
-0060   00??           00286         movwf   W_TEMP              ;start by storing W, STATUS, and PCLATH
-0061   0E03           00287         swapf   STATUS,W            ;  in TEMP registers
-0062   00??           00288         movwf   STATUS_TEMP         ;
-0063   080A           00289         movf    PCLATH,W            ;
-0064   00??           00290         movwf   PCLATH_TEMP         ;
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE  7
+0071   1C0C           00286         btfss   PIE1,TMR1IE         ; check local interrupt enable status
+0072   2???           00287         goto    ISR_POP             ;  if clear, skip to next section of ISR
+0073   1283 1303      00288         banksel PIR1                ;
+0075   180C           00289         btfsc   PIR1,TMR1IF         ; check interrupt flag status
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE  7
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00291         
-0065                  00292 ISR_IOCA:                           ;
-0065   1283 1303      00293         banksel INTCON              ;check if IOC fired on port A
-0067   180B           00294         btfsc   INTCON,RABIF        ; if the RUN button interrupt flag is high
-0068   2???           00295         call    IOC_RESP            ; call IOC response routine
-                      00296         
-0069                  00297 ISR_T0:                             ;
-0069   1283 1303      00298         banksel INTCON              ;check Timer 0 interrupt
-006B   1E8B           00299         btfss   INTCON,T0IE         ; check local interrupt enable status
-006C   2???           00300         goto    ISR_T1              ;  if clear, skip to next section of ISR
-006D   190B           00301         btfsc   INTCON,T0IF         ;  else, check interrupt flag status
-006E   2???           00302         call    TMR0_OVFL           ;    if set, call the Timer 0 ovrflw routine
-                      00303 
-006F                  00304 ISR_T1:                             ;
-006F   1683 1303      00305         banksel PIE1                ;check Timer 1 interrupt
+0076   2???           00290         call    TMR1_OVFL           ;  if set, call the Timer 0 overflow routine
+                      00291 
+0077                  00292 ISR_POP:
+0077   08??           00293         movf    PCLATH_TEMP,W       ;finish by pulling back the original W,
+0078   008A           00294         movwf   PCLATH              ; STATUS, and PCLATH from the TEMP registers
+0079   0E??           00295         swapf   STATUS_TEMP,W       ;
+007A   0083           00296         movwf   STATUS              ;
+007B   0E??           00297         swapf   W_TEMP,F            ;
+007C   0E??           00298         swapf   W_TEMP,W            ;
+007D   0009           00299         retfie                      ;return from the ISR
+                      00300         
+                      00301 ;==========================================================================
+                      00302 ;IOC_RESP routine code
+                      00303 ;==========================================================================
+007E                  00304 IOC_RESP:                           ;
+007E   2???           00305         call    DEBOUNCE_START      ;start the extended debouncing routine
+007F   1C00           00306         btfss   FLAGS,RUNNING       ;if not currently RUNNING,
+0080   2???           00307         goto    START_CHASE         ; start the chase sequence
+0081   2???           00308         goto    END_CHASE           ;else, end the chase sequence
+                      00309         
+                      00310 ;==========================================================================
+                      00311 ;DEBOUNCE_START routine code
+                      00312 ;==========================================================================
+0082                  00313 DEBOUNCE_START:                     ;
+0082   1283 1303      00314         banksel PORTA               ;sample Port A (clears mismatch condition)
+0084   0805           00315         movf    PORTA,W             ;
+0085   1683 1303      00316         banksel IOCA                ;locally disable IOC for run button
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0071   1C0C           00306         btfss   PIE1,TMR1IE         ; check local interrupt enable status
-0072   2???           00307         goto    ISR_POP             ;  if clear, skip to next section of ISR
-0073   1283 1303      00308         banksel PIR1                ;
-0075   180C           00309         btfsc   PIR1,TMR1IF         ; check interrupt flag status
-0076   2???           00310         call    TMR1_OVFL           ;  if set, call the Timer 0 overflow routine
-                      00311 
-0077                  00312 ISR_POP:
-0077   08??           00313         movf    PCLATH_TEMP,W       ;finish by pulling back the original W,
-0078   008A           00314         movwf   PCLATH              ; STATUS, and PCLATH from the TEMP registers
-0079   0E??           00315         swapf   STATUS_TEMP,W       ;
-007A   0083           00316         movwf   STATUS              ;
-007B   0E??           00317         swapf   W_TEMP,F            ;
-007C   0E??           00318         swapf   W_TEMP,W            ;
-007D   0009           00319         retfie                      ;return from the ISR
-                      00320         
-                      00321 ;==========================================================================
-                      00322 ;IOC_RESP routine code
-                      00323 ;==========================================================================
-007E                  00324 IOC_RESP:                           ;
-007E   2???           00325         call    DEBOUNCE_START      ;start the extended debouncing routine
-007F   1C00           00326         btfss   FLAGS,RUNNING       ;if not currently RUNNING,
-0080   2???           00327         goto    START_CHASE         ; start the chase sequence
-0081   2???           00328         goto    END_CHASE           ;else, end the chase sequence
-                      00329         
-                      00330 ;==========================================================================
-                      00331 ;DEBOUNCE_START routine code
-                      00332 ;==========================================================================
-0082                  00333 DEBOUNCE_START:                     ;
-0082   1283 1303      00334         banksel PORTA               ;sample Port A (clears mismatch condition)
-0084   0805           00335         movf    PORTA,W             ;
-0085   1683 1303      00336         banksel IOCA                ;locally disable IOC for run button
+0087   1116           00317         bcf     IOCA,RUN_BTN        ;
+0088   1283 1303      00318         banksel INTCON              ;clear INTCON IOC flag
+008A   100B           00319         bcf     INTCON,RABIF        ;
+008B   1480           00320         bsf     FLAGS,DEBOUNCING    ;set debouncing flag
+008C   3099           00321         movlw   DEB_TIME            ;load debounce time into timer register
+008D   00??           00322         movwf   DEB_TMR             ;
+008E   0008           00323         return                      ;
+                      00324         
+                      00325 ;==========================================================================
+                      00326 ;DEBOUNCE_END routine code
+                      00327 ;==========================================================================
+008F                  00328 DEBOUNCE_END:                       ;
+008F   1080           00329         bcf     FLAGS,DEBOUNCING    ;clear debouncing flag
+0090   1283 1303      00330         banksel INTCON              ;
+0092   100B           00331         bcf     INTCON,RABIF        ;clear IOC flag in INTCON
+0093   1683 1303      00332         banksel IOCA                ;locally enable IOC for run button
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0087   1116           00337         bcf     IOCA,RUN_BTN        ;
-0088   1283 1303      00338         banksel INTCON              ;clear INTCON IOC flag
-008A   100B           00339         bcf     INTCON,RABIF        ;
-008B   1480           00340         bsf     FLAGS,DEBOUNCING    ;set debouncing flag
-008C   3099           00341         movlw   DEB_TIME            ;load debounce time into timer register
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE  8
+0095   1516           00333         bsf     IOCA,RUN_BTN        ;
+0096   0008           00334         return                      ;
+                      00335         
+                      00336 ;==========================================================================
+                      00337 ;START_CHASE branch code
+                      00338 ;==========================================================================
+0097                  00339 START_CHASE:                        ;
+0097   1283 1303      00340         banksel INTCON              ;clear the port A IOC flag
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE  8
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-008D   00??           00342         movwf   DEB_TMR             ;
-008E   0008           00343         return                      ;
-                      00344         
-                      00345 ;==========================================================================
-                      00346 ;DEBOUNCE_END routine code
-                      00347 ;==========================================================================
-008F                  00348 DEBOUNCE_END:                       ;
-008F   1080           00349         bcf     FLAGS,DEBOUNCING    ;clear debouncing flag
-0090   1283 1303      00350         banksel INTCON              ;
-0092   100B           00351         bcf     INTCON,RABIF        ;clear IOC flag in INTCON
-0093   1683 1303      00352         banksel IOCA                ;locally enable IOC for run button
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0095   1516           00353         bsf     IOCA,RUN_BTN        ;
-0096   0008           00354         return                      ;
-                      00355         
-                      00356 ;==========================================================================
-                      00357 ;START_CHASE branch code
-                      00358 ;==========================================================================
-0097                  00359 START_CHASE:                        ;
-0097   1283 1303      00360         banksel INTCON              ;clear the port A IOC flag
-0099   100B           00361         bcf     INTCON,RABIF        ;
-009A   1400           00362         bsf     FLAGS,RUNNING       ;change RUNNING state to true
-009B   1283 1303      00363         banksel PORTA               ;enable RUNNING indicator LED
-009D   1485           00364         bsf     PORTA,RUN_IND       ;
-009E   01??           00365         clrf    RUN_INDX            ;reset RUN sequence index
-009F   3004           00366         movlw   NUM_CYCLS           ;reset cycle count
-00A0   00??           00367         movwf   CYCL_CNT            ;
-00A1   0008           00368         return                      ;return from the subroutine
-                      00369         
-                      00370 ;==========================================================================
-                      00371 ;END_CHASE branch code
-                      00372 ;==========================================================================
-00A2                  00373 END_CHASE:                          ;
-00A2   1000           00374         bcf     FLAGS,RUNNING       ;change RUNNING state to false
-00A3   1283 1303      00375         banksel PORTA               ;disable RUNNING indicator
-00A5   1085           00376         bcf     PORTA,RUN_IND       ;
-00A6   2???           00377         goto    RUN_OFF             ;disable all motors (turn FERRET OFF)
-                      00378 
-                      00379 ;==========================================================================
-                      00380 ;TMR0_OVFL routine code (servo PWM)
-                      00381 ;==========================================================================
-00A7                  00382 TMR0_OVFL:                          ;
-00A7   1283 1303      00383         banksel INTCON              ;clear Timer 0 interrupt flag
-00A9   110B           00384         bcf     INTCON,T0IF         ;
-                      00385         
-                      00386         ;Servo control output timing
-00AA   03??           00387         decf    SRV_CNT,W           ;decrement the counter
-00AB   1903           00388         btfsc   STATUS,Z            ;if zero,
-00AC   304E           00389         movlw   TWENTY_MS           ; load 20 ms back into counter
-00AD   00??           00390         movwf   SRV_CNT             ;
+0099   100B           00341         bcf     INTCON,RABIF        ;
+009A   1400           00342         bsf     FLAGS,RUNNING       ;change RUNNING state to true
+009B   1283 1303      00343         banksel PORTA               ;enable RUNNING indicator LED
+009D   1485           00344         bsf     PORTA,RUN_IND       ;
+009E   01??           00345         clrf    RUN_INDX            ;reset RUN sequence index
+009F   30FF           00346         movlw   NUM_CYCLS           ;reset cycle count
+00A0   00??           00347         movwf   CYCL_CNT            ;
+00A1   2???           00348         call    RUN_CNTRL           ;run first step
+00A2   0008           00349         return                      ;return from the subroutine
+                      00350         
+                      00351 ;==========================================================================
+                      00352 ;END_CHASE branch code
+                      00353 ;==========================================================================
+00A3                  00354 END_CHASE:                          ;
+00A3   1000           00355         bcf     FLAGS,RUNNING       ;change RUNNING state to false
+00A4   1283 1303      00356         banksel PORTA               ;disable RUNNING indicator
+00A6   1085           00357         bcf     PORTA,RUN_IND       ;
+00A7   2???           00358         goto    RUN_OFF             ;disable all motors (turn FERRET OFF)
+                      00359 
+                      00360 ;==========================================================================
+                      00361 ;TMR0_OVFL routine code (servo PWM)
+                      00362 ;==========================================================================
+00A8                  00363 TMR0_OVFL:                          ;
+00A8   1283 1303      00364         banksel INTCON              ;clear Timer 0 interrupt flag
+00AA   110B           00365         bcf     INTCON,T0IF         ;
+                      00366         
+                      00367         ;Servo control output timing
+00AB   03??           00368         decf    SRV_CNT,W           ;decrement the counter
+00AC   1903           00369         btfsc   STATUS,Z            ;if zero,
+00AD   304E           00370         movlw   TWENTY_MS           ; load 20 ms back into counter
+00AE   00??           00371         movwf   SRV_CNT             ;
+                      00372         
+                      00373         ;Servo A
+00AF   1283 1303      00374         banksel PORTC               ;check if SRV_CNT is above SRVA_PW
+00B1   02??           00375         subwf   SRVA_PW,W           ;
+00B2   1C03           00376         btfss   STATUS,C            ; if above, clear SRV_CNTRL pin
+00B3   1107           00377         bcf     PORTC,SRVA_CNTRL    ;
+00B4   1803           00378         btfsc   STATUS,C            ; else, set SRV_CNTRL pin
+00B5   1507           00379         bsf     PORTC,SRVA_CNTRL    ;
+                      00380         
+                      00381         ;Servo B
+00B6   1283 1303      00382         banksel PORTC               ;check if SRV_CNT is above SRVB_PW
+00B8   02??           00383         subwf   SRVB_PW,W           ;
+00B9   1C03           00384         btfss   STATUS,C            ; if above, clear SRV_CNTRL pin
+00BA   1087           00385         bcf     PORTC,SRVB_CNTRL    ;
+00BB   1803           00386         btfsc   STATUS,C            ; else, set SRV_CNTRL pin
+00BC   1487           00387         bsf     PORTC,SRVB_CNTRL    ;
+                      00388            
+00BD   0008           00389         return                      ;return from the subroutine
+                      00390         
                       00391         
-                      00392         ;Servo A
-00AE   1283 1303      00393         banksel PORTC               ;check if SRV_CNT is above SRVA_PW
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE  9
+                      00392 ;==========================================================================
+                      00393 ;TMR1_OVFL routine code (software timers/counters)
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE  9
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-00B0   02??           00394         subwf   SRVA_PW,W           ;
-00B1   1C03           00395         btfss   STATUS,C            ; if above, clear SRV_CNTRL pin
-00B2   1107           00396         bcf     PORTC,SRVA_CNTRL    ;
-00B3   1803           00397         btfsc   STATUS,C            ; else, set SRV_CNTRL pin
-00B4   1507           00398         bsf     PORTC,SRVA_CNTRL    ;
-                      00399         
-                      00400         ;Servo B
-00B5   1283 1303      00401         banksel PORTC               ;check if SRV_CNT is above SRVB_PW
-00B7   02??           00402         subwf   SRVB_PW,W           ;
-00B8   1C03           00403         btfss   STATUS,C            ; if above, clear SRV_CNTRL pin
-00B9   1087           00404         bcf     PORTC,SRVB_CNTRL    ;
-00BA   1803           00405         btfsc   STATUS,C            ; else, set SRV_CNTRL pin
-00BB   1487           00406         bsf     PORTC,SRVB_CNTRL    ;
-                      00407            
-00BC   0008           00408         return                      ;return from the subroutine
-                      00409         
+                      00394 ;==========================================================================
+00BE                  00395 TMR1_OVFL:                          ;
+00BE   1283 1303      00396         banksel PIR1                ;clear Timer 1 interrupt flag
+00C0   100C           00397         bcf     PIR1,TMR1IF         ;
+                      00398         
+                      00399         ; Heartbeat control timing
+00C1   03??           00400         decf    HB_TMR,F            ;increment heartbeat LED timer
+00C2   1903           00401         btfsc   STATUS,Z            ;
+00C3   2???           00402         call    TOGGLE_HB           ; if cleared, toggle the heartbeat
+                      00403 
+00C4                  00404 DEBOUNCING_LOOP:                    ;DEBOUNCING sequence loop
+00C4   1C80           00405         btfss   FLAGS,DEBOUNCING    ;check if in DEBOUNCING state
+00C5   2???           00406         goto    RUNNING_LOOP        ; if not, go to next part of Timer 1 ISR
+00C6   03??           00407         decf    DEB_TMR,F           ;decrement debounce timer
+00C7   1903           00408         btfsc   STATUS,Z            ; if debounce time is over
+00C8   2???           00409         call    DEBOUNCE_END        ;   end the debouncing
                       00410         
-                      00411 ;==========================================================================
-                      00412 ;TMR1_OVFL routine code (software timers/counters)
-                      00413 ;==========================================================================
-00BD                  00414 TMR1_OVFL:                          ;
-00BD   1283 1303      00415         banksel PIR1                ;clear Timer 1 interrupt flag
-00BF   100C           00416         bcf     PIR1,TMR1IF         ;
+00C9                  00411 RUNNING_LOOP:                       ;RUNNING sequence loop
+00C9   1C00           00412         btfss   FLAGS,RUNNING       ;check if in RUNNING state
+00CA   2???           00413         goto    END_TMR1_OVFL       ; if not, go to next part of Timer 1 ISR
+00CB   03??           00414         decf    RUN_TMR,F           ;decrement RUN step timer
+00CC   1903           00415         btfsc   STATUS,Z            ;
+00CD   2???           00416         call    RUN_CNTRL           ; if cleared, call the RUN control routine
                       00417         
-                      00418         ; Heartbeat control timing
-00C0   03??           00419         decf    HB_TMR,F            ;increment heartbeat LED timer
-00C1   1903           00420         btfsc   STATUS,Z            ;
-00C2   2???           00421         call    TOGGLE_HB           ; if cleared, toggle the heartbeat
-                      00422 
-00C3                  00423 DEBOUNCING_LOOP:                    ;DEBOUNCING sequence loop
-00C3   1C80           00424         btfss   FLAGS,DEBOUNCING    ;check if in DEBOUNCING state
-00C4   2???           00425         goto    RUNNING_LOOP        ; if not, go to next part of Timer 1 ISR
-00C5   03??           00426         decf    DEB_TMR,F           ;decrement debounce timer
-00C6   1903           00427         btfsc   STATUS,Z            ; if debounce time is over
-00C7   2???           00428         call    DEBOUNCE_END        ;   end the debouncing
-                      00429         
-00C8                  00430 RUNNING_LOOP:                       ;RUNNING sequence loop
-00C8   1C00           00431         btfss   FLAGS,RUNNING       ;check if in RUNNING state
-00C9   2???           00432         goto    END_TMR1_OVFL       ; if not, go to next part of Timer 1 ISR
-00CA   03??           00433         decf    RUN_TMR,F           ;decrement RUN step timer
-00CB   1903           00434         btfsc   STATUS,Z            ;
-00CC   2???           00435         call    RUN_CNTRL           ; if cleared, call the RUN control routine
-                      00436         
-00CD                  00437 END_TMR1_OVFL:
-00CD   0008           00438         return                      ;return from the subroutine
-                      00439         
-                      00440 ;==========================================================================
-                      00441 ;TOGGLE_HB routine code
-                      00442 ;==========================================================================
-00CE                  00443 TOGGLE_HB:                      ;
-00CE   1283 1303      00444         banksel PORTA           ;xor PORTA with the heartbeat LED bit value
-00D0   3001           00445         movlw   HB_ON           ;
-00D1   0685           00446         xorwf   PORTA,F         ;
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE 10
+00CE                  00418 END_TMR1_OVFL:
+00CE   0008           00419         return                      ;return from the subroutine
+                      00420         
+                      00421 ;==========================================================================
+                      00422 ;TOGGLE_HB routine code
+                      00423 ;==========================================================================
+00CF                  00424 TOGGLE_HB:                      ;
+00CF   1283 1303      00425         banksel PORTA           ;xor PORTA with the heartbeat LED bit value
+00D1   3001           00426         movlw   HB_ON           ;
+00D2   0685           00427         xorwf   PORTA,F         ;
+00D3   300F           00428         movlw   HB_TIME         ;reset HB_TIME
+00D4   00??           00429         movwf   HB_TMR          ;
+00D5   0008           00430         return                  ;       
+                      00431         
+                      00432 ;==========================================================================
+                      00433 ;RUN_CNTRL routine code
+                      00434 ;==========================================================================
+00D6                  00435 RUN_CNTRL:                          ;
+00D6   0A??           00436         incf    RUN_INDX,F          ;begin next step in RUN sequence:
+00D7   08??           00437         movf    RUN_INDX,W          ; - increment index
+00D8   3C02           00438         sublw   NUM_STEPS           ;
+00D9   1C03           00439         btfss   STATUS,C            ; - if a cycle is complete
+00DA   2???           00440         goto    NEXT_CYCLE          ;      begin a new cycle
+00DB   2???           00441         goto    RUN_STEP            ; - otherwise, run the next step
+                      00442 
+00DC                  00443 NEXT_CYCLE:
+00DC   01??           00444         clrf    RUN_INDX            ;reset RUN step index
+00DD   0B??           00445         decfsz  CYCL_CNT,W          ;decrement cycle counter
+00DE   2???           00446         goto    RUN_STEP            ;  if not 0, run the first sequence step
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE 10
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-00D2   300F           00447         movlw   HB_TIME         ;reset HB_TIME
-00D3   00??           00448         movwf   HB_TMR          ;
-00D4   0008           00449         return                  ;       
-                      00450         
-                      00451 ;==========================================================================
-                      00452 ;RUN_CNTRL routine code
-                      00453 ;==========================================================================
-00D5                  00454 RUN_CNTRL:                          ;
-00D5   0A??           00455         incf    RUN_INDX,F          ;begin next step in RUN sequence:
-00D6   08??           00456         movf    RUN_INDX,W          ; - increment index
-00D7   3C0C           00457         sublw   NUM_STEPS           ;
-00D8   1C03           00458         btfss   STATUS,C            ; - if a cycle is complete
-00D9   2???           00459         goto    NEXT_CYCLE          ;      begin a new cycle
-00DA   2???           00460         goto    RUN_STEP            ; - otherwise, run the next step
-                      00461 
-00DB                  00462 NEXT_CYCLE:
-00DB   01??           00463         clrf    RUN_INDX            ;reset RUN step index
-00DC   0B??           00464         decfsz  CYCL_CNT,W          ;decrement cycle counter
-00DD   2???           00465         goto    RUN_STEP            ;  if not 0, run the first sequence step
-00DE   2???           00466         goto    END_CHASE           ;  if 0, stop the CHASE routine
-                      00467     
-00DF                  00468 RUN_STEP:                           ;   
-00DF   2???           00469         call    RUN_STEP_SEQ        ;call nex RUN step from sequence
-00E0   08??           00470         movf    RUN_INDX,W          ;get the corresponding step run time
-00E1   2???           00471         call    RUN_STEP_TIME       ;put it into the step timer
-00E2   00??           00472         movwf   RUN_TMR             ;
-00E3   0008           00473         return                      ;
-                      00474 
-                      00475 ;==========================================================================
-                      00476 ;TF_SET_FULL routine code
-                      00477 ;==========================================================================
-00E4                  00478 TF_SET_FULL:                        ;
-00E4   1283 1303      00479     banksel     CCPR1L              ;set thrust fan duty cycle to FULL
-00E6   3065           00480     movlw       TF_FULL             ;
-00E7   0095           00481     movwf       CCPR1L              ;
-00E8   0008           00482     return                          ;
-                      00483 
-                      00484 ;==========================================================================
-                      00485 ;TF_SET_HALF routine code
-                      00486 ;==========================================================================
-00E9                  00487 TF_SET_HALF:                        ;
-00E9   1283 1303      00488     banksel     CCPR1L              ;set thrust fan duty cycle to HALF
-00EB   3032           00489     movlw       TF_HALF             ;
-00EC   0095           00490     movwf       CCPR1L              ;
-00ED   0008           00491     return                          ;
-                      00492     
-                      00493 ;==========================================================================
-                      00494 ;TF_SET_OFF routine code
-                      00495 ;==========================================================================
-00EE                  00496 TF_SET_OFF:                         ;
-00EE   1283 1303      00497     banksel     CCPR1L              ;set thrust fan duty cycle to OFF
-00F0   3000           00498     movlw       TF_OFF              ;
-00F1   0095           00499     movwf       CCPR1L              ;
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE 11
+00DF   2???           00447         goto    END_CHASE           ;  if 0, stop the CHASE routine
+                      00448     
+00E0                  00449 RUN_STEP:                           ;   
+00E0   2???           00450         call    RUN_STEP_SEQ        ;call nex RUN step from sequence
+00E1   08??           00451         movf    RUN_INDX,W          ;get the corresponding step run time
+00E2   2???           00452         call    RUN_STEP_TIME       ;put it into the step timer
+00E3   00??           00453         movwf   RUN_TMR             ;
+00E4   0008           00454         return                      ;
+                      00455 
+                      00456 ;==========================================================================
+                      00457 ;TF_SET_FULL routine code
+                      00458 ;==========================================================================
+00E5                  00459 TF_SET_FULL:                        ;
+00E5   1283 1303      00460     banksel     CCPR1L              ;set thrust fan duty cycle to FULL
+00E7   3065           00461     movlw       TF_FULL             ;
+00E8   0095           00462     movwf       CCPR1L              ;
+00E9   0008           00463     return                          ;
+                      00464 
+                      00465 ;==========================================================================
+                      00466 ;TF_SET_HALF routine code
+                      00467 ;==========================================================================
+00EA                  00468 TF_SET_HALF:                        ;
+00EA   1283 1303      00469     banksel     CCPR1L              ;set thrust fan duty cycle to HALF
+00EC   3032           00470     movlw       TF_HALF             ;
+00ED   0095           00471     movwf       CCPR1L              ;
+00EE   0008           00472     return                          ;
+                      00473     
+                      00474 ;==========================================================================
+                      00475 ;TF_SET_OFF routine code
+                      00476 ;==========================================================================
+00EF                  00477 TF_SET_OFF:                         ;
+00EF   1283 1303      00478     banksel     CCPR1L              ;set thrust fan duty cycle to OFF
+00F1   3000           00479     movlw       TF_OFF              ;
+00F2   0095           00480     movwf       CCPR1L              ;
+00F3   0008           00481     return                          ;
+                      00482         
+                      00483 ;==========================================================================
+                      00484 ;SRVA_ON routine code
+                      00485 ;==========================================================================
+00F4                  00486 SRVA_ON:                            ;
+00F4   3008           00487         movlw   SRVA_ENG            ;set servo A pw to ENGAGED
+00F5   00??           00488         movwf   SRVA_PW             ;
+00F6   1500           00489         bsf     FLAGS,SRVA_ENGD     ;
+00F7   0008           00490         return                      ;
+                      00491         
+                      00492 ;==========================================================================
+                      00493 ;SRVA_OFF routine code
+                      00494 ;==========================================================================
+00F8                  00495 SRVA_OFF:                           ;
+00F8   3006           00496         movlw   SRVA_DIS            ;set servo A pw to DISENGAGED
+00F9   00??           00497         movwf   SRVA_PW             ;
+00FA   1100           00498         bcf     FLAGS,SRVA_ENGD     ;
+00FB   0008           00499         return                      ;
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE 11
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-00F2   0008           00500     return                          ;
-                      00501         
-                      00502 ;==========================================================================
-                      00503 ;SRVA_ON routine code
-                      00504 ;==========================================================================
-00F3                  00505 SRVA_ON:                            ;
-00F3   3008           00506         movlw   SRVA_ENG            ;set servo A pw to ENGAGED
-00F4   00??           00507         movwf   SRVA_PW             ;
-00F5   1500           00508         bsf     FLAGS,SRVA_ENGD     ;
-00F6   0008           00509         return                      ;
-                      00510         
-                      00511 ;==========================================================================
-                      00512 ;SRVA_OFF routine code
-                      00513 ;==========================================================================
-00F7                  00514 SRVA_OFF:                           ;
-00F7   3006           00515         movlw   SRVA_DIS            ;set servo A pw to DISENGAGED
-00F8   00??           00516         movwf   SRVA_PW             ;
-00F9   1100           00517         bcf     FLAGS,SRVA_ENGD     ;
-00FA   0008           00518         return                      ;
-                      00519 
-                      00520 ;==========================================================================
-                      00521 ;SRVB_ON routine code
-                      00522 ;==========================================================================
-00FB                  00523 SRVB_ON:                            ;
-00FB   3008           00524         movlw   SRVB_ENG            ;set servo B pw to ENGAGED
-00FC   00??           00525         movwf   SRVB_PW             ;
-00FD   1580           00526         bsf     FLAGS,SRVB_ENGD     ;
-00FE   0008           00527         return                      ;
-                      00528         
+                      00500 
+                      00501 ;==========================================================================
+                      00502 ;SRVB_ON routine code
+                      00503 ;==========================================================================
+00FC                  00504 SRVB_ON:                            ;
+00FC   3008           00505         movlw   SRVB_ENG            ;set servo B pw to ENGAGED
+00FD   00??           00506         movwf   SRVB_PW             ;
+00FE   1580           00507         bsf     FLAGS,SRVB_ENGD     ;
+00FF   0008           00508         return                      ;
+                      00509         
+                      00510 ;==========================================================================
+                      00511 ;SRVB_OFF routine code
+                      00512 ;==========================================================================
+0100                  00513 SRVB_OFF:                           ;
+0100   3006           00514         movlw   SRVB_DIS            ;set servo B pw to DISENGAGED
+0101   00??           00515         movwf   SRVB_PW             ;
+0102   1180           00516         bcf     FLAGS,SRVB_ENGD     ;
+0103   0008           00517         return                      ;
+                      00518         
+                      00519 ;==========================================================================
+                      00520 ;LIFT_ON routine code
+                      00521 ;==========================================================================
+0104                  00522 LIFT_ON:                            ;
+0104   1283 1303      00523         banksel PORTC               ;turn ON the lift fan
+0106   1707           00524         bsf     PORTC,LIFT_CNTRL    ;
+0107   0008           00525         return                      ;
+                      00526     
+                      00527 ;==========================================================================
+                      00528 ;LIFT_OFF routine code
                       00529 ;==========================================================================
-                      00530 ;SRVB_OFF routine code
-                      00531 ;==========================================================================
-00FF                  00532 SRVB_OFF:                           ;
-00FF   3006           00533         movlw   SRVB_DIS            ;set servo B pw to DISENGAGED
-0100   00??           00534         movwf   SRVB_PW             ;
-0101   1180           00535         bcf     FLAGS,SRVB_ENGD     ;
-0102   0008           00536         return                      ;
-                      00537         
-                      00538 ;==========================================================================
-                      00539 ;LIFT_ON routine code
-                      00540 ;==========================================================================
-0103                  00541 LIFT_ON:                            ;
-0103   1283 1303      00542         banksel PORTC               ;turn ON the lift fan
-0105   1707           00543         bsf     PORTC,LIFT_CNTRL    ;
-0106   0008           00544         return                      ;
-                      00545     
-                      00546 ;==========================================================================
-                      00547 ;LIFT_OFF routine code
-                      00548 ;==========================================================================
-0107                  00549 LIFT_OFF:                           ;
-0107   1283 1303      00550         banksel PORTC               ;turn OFF the lift fan
-0109   1307           00551         bcf     PORTC,LIFT_CNTRL    ;
-010A   0008           00552         return                      ;
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE 12
+0108                  00530 LIFT_OFF:                           ;
+0108   1283 1303      00531         banksel PORTC               ;turn OFF the lift fan
+010A   1307           00532         bcf     PORTC,LIFT_CNTRL    ;
+010B   0008           00533         return                      ;
+                      00534         
+                      00535         
+                      00536 ;==========================================================================
+                      00537 ;**** RUN STEP BEHAVIOR FUNCTIONS ****
+                      00538 ;==========================================================================     
+010C                  00539 RUN_OFF:                            ;case: FERRET off
+010C   2???           00540         call    TF_SET_OFF          ;thrust     -       OFF
+010D   2???           00541         call    SRVA_OFF            ;servo A    -       OFF
+010E   2???           00542         call    SRVB_OFF            ;servo B    -       OFF
+010F   2???           00543         call    LIFT_OFF            ;lift       -       OFF
+0110   0008           00544         return                      ;
+                      00545         
+0111                  00546 RUN_HRD_BRAKE:                      ;case: hard brake
+0111   2???           00547         call    TF_SET_OFF          ;thrust     -       OFF
+0112   2???           00548         call    SRVA_ON             ;servo A    -       ON
+0113   2???           00549         call    SRVB_ON             ;servo B    -       ON
+0114   2???           00550         call    LIFT_OFF            ;lift       -       OFF
+0115   0008           00551         return                      ;
+                      00552         
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE 12
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00553         
-                      00554         
-                      00555 ;==========================================================================
-                      00556 ;**** RUN STEP BEHAVIOR FUNCTIONS ****
-                      00557 ;==========================================================================     
-010B                  00558 RUN_OFF:                            ;case: FERRET off
-010B   2???           00559         call    TF_SET_OFF          ;thrust     -       OFF
-010C   2???           00560         call    SRVA_OFF            ;servo A    -       OFF
-010D   2???           00561         call    SRVB_OFF            ;servo B    -       OFF
-010E   2???           00562         call    LIFT_OFF            ;lift       -       OFF
-010F   0008           00563         return                      ;
-                      00564         
-0110                  00565 RUN_HRD_BRAKE:                      ;case: hard brake
-0110   2???           00566         call    TF_SET_OFF          ;thrust     -       OFF
-0111   2???           00567         call    SRVA_ON             ;servo A    -       ON
-0112   2???           00568         call    SRVB_ON             ;servo B    -       ON
-0113   2???           00569         call    LIFT_OFF            ;lift       -       OFF
-0114   0008           00570         return                      ;
-                      00571         
-0115                  00572 RUN_SFT_BRAKE:                      ;case: soft brake
-0115   2???           00573         call    TF_SET_OFF          ;thrust     -       OFF
-0116   2???           00574         call    SRVA_ON             ;servo A    -       ON
-0117   2???           00575         call    SRVB_ON             ;servo B    -       ON
-0118   2???           00576         call    LIFT_ON             ;lift       -       ON
-0119   0008           00577         return                      ;
-                      00578         
-011A                  00579 RUN_DRIFT:                          ;case: idle drifting
-011A   2???           00580         call    TF_SET_OFF          ;thrust     -       OFF
-011B   2???           00581         call    SRVA_OFF            ;servo A    -       OFF
-011C   2???           00582         call    SRVB_OFF            ;servo B    -       OFF
-011D   2???           00583         call    LIFT_ON             ;lift       -       ON
-011E   0008           00584         return                      ;
-                      00585         
-011F                  00586 RUN_FULL_FWD:                       ;case: full thrust forward
-011F   2???           00587         call    TF_SET_FULL         ;thrust     -       FULL
-0120   2???           00588         call    SRVA_OFF            ;servo A    -       OFF
-0121   2???           00589         call    SRVB_OFF            ;servo B    -       OFF
-0122   2???           00590         call    LIFT_ON             ;lift       -       ON
-0123   0008           00591         return                      ;
-                      00592         
-0124                  00593 RUN_HALF_FWD:                       ;case: half thrust forward
-0124   2???           00594         call    TF_SET_HALF         ;thrust     -       HALF
-0125   2???           00595         call    SRVA_OFF            ;servo A    -       OFF
-0126   2???           00596         call    SRVB_OFF            ;servo B    -       OFF
-0127   2???           00597         call    LIFT_ON             ;lift       -       ON
-0128   0008           00598         return                      ;
-                      00599         
-0129                  00600 RUN_FULL_LEFT:                      ;case: full thrust left turn
-0129   2???           00601         call    TF_SET_FULL         ;thrust     -       FULL
-012A   2???           00602         call    SRVA_ON             ;servo A    -       ON
-012B   2???           00603         call    SRVB_OFF            ;servo B    -       OFF
-012C   2???           00604         call    LIFT_ON             ;lift       -       ON
-012D   0008           00605         return                      ;
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE 13
+0116                  00553 RUN_SFT_BRAKE:                      ;case: soft brake
+0116   2???           00554         call    TF_SET_OFF          ;thrust     -       OFF
+0117   2???           00555         call    SRVA_ON             ;servo A    -       ON
+0118   2???           00556         call    SRVB_ON             ;servo B    -       ON
+0119   2???           00557         call    LIFT_ON             ;lift       -       ON
+011A   0008           00558         return                      ;
+                      00559         
+011B                  00560 RUN_DRIFT:                          ;case: idle drifting
+011B   2???           00561         call    TF_SET_OFF          ;thrust     -       OFF
+011C   2???           00562         call    SRVA_OFF            ;servo A    -       OFF
+011D   2???           00563         call    SRVB_OFF            ;servo B    -       OFF
+011E   2???           00564         call    LIFT_ON             ;lift       -       ON
+011F   0008           00565         return                      ;
+                      00566         
+0120                  00567 RUN_FULL_FWD:                       ;case: full thrust forward
+0120   2???           00568         call    TF_SET_FULL         ;thrust     -       FULL
+0121   2???           00569         call    SRVA_OFF            ;servo A    -       OFF
+0122   2???           00570         call    SRVB_OFF            ;servo B    -       OFF
+0123   2???           00571         call    LIFT_ON             ;lift       -       ON
+0124   0008           00572         return                      ;
+                      00573         
+0125                  00574 RUN_HALF_FWD:                       ;case: half thrust forward
+0125   2???           00575         call    TF_SET_HALF         ;thrust     -       HALF
+0126   2???           00576         call    SRVA_OFF            ;servo A    -       OFF
+0127   2???           00577         call    SRVB_OFF            ;servo B    -       OFF
+0128   2???           00578         call    LIFT_ON             ;lift       -       ON
+0129   0008           00579         return                      ;
+                      00580         
+012A                  00581 RUN_FULL_LEFT:                      ;case: full thrust left turn
+012A   2???           00582         call    TF_SET_FULL         ;thrust     -       FULL
+012B   2???           00583         call    SRVA_ON             ;servo A    -       ON
+012C   2???           00584         call    SRVB_OFF            ;servo B    -       OFF
+012D   2???           00585         call    LIFT_ON             ;lift       -       ON
+012E   0008           00586         return                      ;
+                      00587         
+012F                  00588 RUN_HALF_LEFT:                      ;case: half thrust left turn
+012F   2???           00589         call    TF_SET_HALF         ;thrust     -       HALF
+0130   2???           00590         call    SRVA_ON             ;servo A    -       ON
+0131   2???           00591         call    SRVB_OFF            ;servo B    -       OFF
+0132   2???           00592         call    LIFT_ON             ;lift       -       ON
+0133   0008           00593         return                      ;
+                      00594 
+0134                  00595 RUN_BRAKE_LEFT:                     ;case: no thrust left turn
+0134   2???           00596         call    TF_SET_OFF          ;thrust     -       OFF
+0135   2???           00597         call    SRVA_ON             ;servo A    -       ON
+0136   2???           00598         call    SRVB_OFF            ;servo B    -       OFF
+0137   2???           00599         call    LIFT_ON             ;lift       -       ON
+0138   0008           00600         return                      ;
+                      00601         
+0139                  00602 RUN_FULL_RIGHT:                     ;case: full thrust right turn
+0139   2???           00603         call    TF_SET_FULL         ;thrust     -       FULL
+013A   2???           00604         call    SRVA_OFF            ;servo A    -       OFF
+013B   2???           00605         call    SRVB_ON             ;servo B    -       ON
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE 13
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00606         
-012E                  00607 RUN_HALF_LEFT:                      ;case: half thrust left turn
-012E   2???           00608         call    TF_SET_HALF         ;thrust     -       HALF
-012F   2???           00609         call    SRVA_ON             ;servo A    -       ON
-0130   2???           00610         call    SRVB_OFF            ;servo B    -       OFF
-0131   2???           00611         call    LIFT_ON             ;lift       -       ON
-0132   0008           00612         return                      ;
-                      00613 
-0133                  00614 RUN_BRAKE_LEFT:                     ;case: no thrust left turn
-0133   2???           00615         call    TF_SET_OFF          ;thrust     -       OFF
-0134   2???           00616         call    SRVA_ON             ;servo A    -       ON
-0135   2???           00617         call    SRVB_OFF            ;servo B    -       OFF
-0136   2???           00618         call    LIFT_ON             ;lift       -       ON
-0137   0008           00619         return                      ;
-                      00620         
-0138                  00621 RUN_FULL_RIGHT:                     ;case: full thrust right turn
-0138   2???           00622         call    TF_SET_FULL         ;thrust     -       FULL
-0139   2???           00623         call    SRVA_OFF            ;servo A    -       OFF
-013A   2???           00624         call    SRVB_ON             ;servo B    -       ON
-013B   2???           00625         call    LIFT_ON             ;lift       -       ON
-013C   0008           00626         return                      ;
-                      00627         
-013D                  00628 RUN_HALF_RIGHT:                     ;case: half thrust right turn
-013D   2???           00629         call    TF_SET_HALF         ;thrust     -       HALF
-013E   2???           00630         call    SRVA_OFF            ;servo A    -       OFF
-013F   2???           00631         call    SRVB_ON             ;servo B    -       ON
-0140   2???           00632         call    LIFT_ON             ;lift       -       ON
-0141   0008           00633         return                      ;
-                      00634         
-0142                  00635 RUN_BRAKE_RIGHT:                    ;case: no thrust right turn
-0142   2???           00636         call    TF_SET_OFF          ;thrust     -       OFF
-0143   2???           00637         call    SRVA_OFF            ;servo A    -       OFF
-0144   2???           00638         call    SRVB_ON             ;servo B    -       ON
-0145   2???           00639         call    LIFT_ON             ;lift       -       ON
-0146   0008           00640         return                      ;
-                      00641         
-                      00642 ;==========================================================================
-                      00643 ;Utility functions
-                      00644 ;==========================================================================        
-                      00645     
-                      00646         ;******** TEST TOGGLE METHOD *************
-0147                  00647 TOGGLE_TEST_LED:                ;
-0147   1283 1303      00648         banksel PORTC           ; Using pin RC1
-0149   3002           00649         movlw   H'02'           ;
-014A   0687           00650         xorwf   PORTC,F         ;
-014B   0008           00651         return                  ;
-                      00652         ;******** END TEST TOGGLE ****************
-                      00653     
-                      00654 ;==========================================================================
-                      00655 ;END of code
-                      00656 ;==========================================================================
-3FC4                  00657     END                         ;
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE 14
+013C   2???           00606         call    LIFT_ON             ;lift       -       ON
+013D   0008           00607         return                      ;
+                      00608         
+013E                  00609 RUN_HALF_RIGHT:                     ;case: half thrust right turn
+013E   2???           00610         call    TF_SET_HALF         ;thrust     -       HALF
+013F   2???           00611         call    SRVA_OFF            ;servo A    -       OFF
+0140   2???           00612         call    SRVB_ON             ;servo B    -       ON
+0141   2???           00613         call    LIFT_ON             ;lift       -       ON
+0142   0008           00614         return                      ;
+                      00615         
+0143                  00616 RUN_BRAKE_RIGHT:                    ;case: no thrust right turn
+0143   2???           00617         call    TF_SET_OFF          ;thrust     -       OFF
+0144   2???           00618         call    SRVA_OFF            ;servo A    -       OFF
+0145   2???           00619         call    SRVB_ON             ;servo B    -       ON
+0146   2???           00620         call    LIFT_ON             ;lift       -       ON
+0147   0008           00621         return                      ;
+                      00622         
+                      00623 ;==========================================================================
+                      00624 ;Utility functions
+                      00625 ;==========================================================================        
+                      00626     
+                      00627         ;******** TEST TOGGLE METHOD *************
+0148                  00628 TOGGLE_TEST_LED:                ;
+0148   1283 1303      00629         banksel PORTC           ; Using pin RC1
+014A   3002           00630         movlw   H'02'           ;
+014B   0687           00631         xorwf   PORTC,F         ;
+014C   0008           00632         return                  ;
+                      00633         ;******** END TEST TOGGLE ****************
+                      00634     
+                      00635 ;==========================================================================
+                      00636 ;END of code
+                      00637 ;==========================================================================
+3FC4                  00638     END                         ;
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE 14
 
 
 SYMBOL TABLE
@@ -823,7 +804,7 @@ C1CH0                             00000000
 C1CH1                             00000001
 C1IE                              00000005
 C1IF                              00000005
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE 15
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE 15
 
 
 SYMBOL TABLE
@@ -878,11 +859,11 @@ DC1B1                             00000005
 DEBOUNCE_END                      0000008F
 DEBOUNCE_START                    00000082
 DEBOUNCING                        1
-DEBOUNCING_LOOP                   000000C3
+DEBOUNCING_LOOP                   000000C4
 DEB_TIME                          FIVE_S
 DEB_TMR                           0000007A
 D_A                               00000005
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE 16
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE 16
 
 
 SYMBOL TABLE
@@ -905,8 +886,8 @@ EEIE                              00000004
 EEIF                              00000004
 EEPGD                             00000007
 EIGHT_S                           H'F4'
-END_CHASE                         000000A2
-END_TMR1_OVFL                     000000CD
+END_CHASE                         000000A3
+END_TMR1_OVFL                     000000CE
 F                                 00000001
 FERR                              00000002
 FIVE_S                            H'99'
@@ -941,7 +922,7 @@ IOC3                              00000003
 IOC4                              00000004
 IOC5                              00000005
 IOCA                              00000096
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE 17
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE 17
 
 
 SYMBOL TABLE
@@ -969,8 +950,8 @@ ISR_PUSH                          00000060
 ISR_T0                            00000069
 ISR_T1                            0000006F
 LIFT_CNTRL                        RC6
-LIFT_OFF                          00000107
-LIFT_ON                           00000103
+LIFT_OFF                          00000108
+LIFT_ON                           00000104
 LTS                               00000001
 MAIN_LOOP                         0000005A
 MAIN_SETUP                        00000000
@@ -985,7 +966,7 @@ MSK4                              00000004
 MSK5                              00000005
 MSK6                              00000006
 MSK7                              00000007
-NEXT_CYCLE                        000000DB
+NEXT_CYCLE                        000000DC
 NOT_A                             00000005
 NOT_ADDRESS                       00000005
 NOT_BOR                           00000000
@@ -997,10 +978,10 @@ NOT_T1SYNC                        00000002
 NOT_TO                            00000004
 NOT_W                             00000002
 NOT_WRITE                         00000002
-NUM_CYCLS                         H'04'
-NUM_STEPS                         H'0C'
+NUM_CYCLS                         H'FF'
+NUM_STEPS                         H'02'
 OERR                              00000001
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE 18
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE 18
 
 
 SYMBOL TABLE
@@ -1059,7 +1040,7 @@ RA5                               00000005
 RABIE                             00000003
 RABIF                             00000000
 RB4                               00000004
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE 19
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE 19
 
 
 SYMBOL TABLE
@@ -1086,26 +1067,26 @@ READ_WRITE                        00000002
 RP0                               00000005
 RP1                               00000006
 RUNNING                           0
-RUNNING_LOOP                      000000C8
-RUN_BRAKE_LEFT                    00000133
-RUN_BRAKE_RIGHT                   00000142
+RUNNING_LOOP                      000000C9
+RUN_BRAKE_LEFT                    00000134
+RUN_BRAKE_RIGHT                   00000143
 RUN_BTN                           RA2
-RUN_CNTRL                         000000D5
-RUN_DRIFT                         0000011A
-RUN_FULL_FWD                      0000011F
-RUN_FULL_LEFT                     00000129
-RUN_FULL_RIGHT                    00000138
-RUN_HALF_FWD                      00000124
-RUN_HALF_LEFT                     0000012E
-RUN_HALF_RIGHT                    0000013D
-RUN_HRD_BRAKE                     00000110
+RUN_CNTRL                         000000D6
+RUN_DRIFT                         0000011B
+RUN_FULL_FWD                      00000120
+RUN_FULL_LEFT                     0000012A
+RUN_FULL_RIGHT                    00000139
+RUN_HALF_FWD                      00000125
+RUN_HALF_LEFT                     0000012F
+RUN_HALF_RIGHT                    0000013E
+RUN_HRD_BRAKE                     00000111
 RUN_IND                           RA1
 RUN_INDX                          0000007C
-RUN_OFF                           0000010B
-RUN_SFT_BRAKE                     00000115
-RUN_STEP                          000000DF
+RUN_OFF                           0000010C
+RUN_SFT_BRAKE                     00000116
+RUN_STEP                          000000E0
 RUN_STEP_SEQ                      00000005
-RUN_STEP_TIME                     00000013
+RUN_STEP_TIME                     00000009
 RUN_TMR                           00000078
 RX9                               00000006
 RX9D                              00000000
@@ -1118,7 +1099,7 @@ SCS                               00000000
 SENB                              00000003
 SENDB                             00000003
 SEVEN_S                           H'D6'
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE 20
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE 20
 
 
 SYMBOL TABLE
@@ -1137,15 +1118,15 @@ SRVA_CNTRL                        RC2
 SRVA_DIS                          H'06'
 SRVA_ENG                          H'08'
 SRVA_ENGD                         2
-SRVA_OFF                          000000F7
-SRVA_ON                           000000F3
+SRVA_OFF                          000000F8
+SRVA_ON                           000000F4
 SRVA_PW                           00000075
 SRVB_CNTRL                        RC1
 SRVB_DIS                          H'06'
 SRVB_ENG                          H'08'
 SRVB_ENGD                         3
-SRVB_OFF                          000000FF
-SRVB_ON                           000000FB
+SRVB_OFF                          00000100
+SRVB_ON                           000000FC
 SRVB_PW                           00000076
 SRV_CNT                           00000074
 SRV_TMR                           00000077
@@ -1177,7 +1158,7 @@ T0IE                              00000005
 T0IF                              00000002
 T0SE                              00000004
 T1CKPS0                           00000004
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE 21
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE 21
 
 
 SYMBOL TABLE
@@ -1201,12 +1182,12 @@ TF_HALF                           H'32'
 TF_OFF                            H'00'
 TF_PERIOD                         H'65'
 TF_PWM                            RC5
-TF_SET_FULL                       000000E4
-TF_SET_HALF                       000000E9
-TF_SET_OFF                        000000EE
+TF_SET_FULL                       000000E5
+TF_SET_HALF                       000000EA
+TF_SET_OFF                        000000EF
 THREE_S                           H'5C'
 TMR0                              00000001
-TMR0_OVFL                         000000A7
+TMR0_OVFL                         000000A8
 TMR1                              0000000E
 TMR1CS                            00000001
 TMR1GE                            00000006
@@ -1215,13 +1196,13 @@ TMR1IE                            00000000
 TMR1IF                            00000000
 TMR1L                             0000000E
 TMR1ON                            00000000
-TMR1_OVFL                         000000BD
+TMR1_OVFL                         000000BE
 TMR2                              00000011
 TMR2IE                            00000001
 TMR2IF                            00000001
 TMR2ON                            00000002
-TOGGLE_HB                         000000CE
-TOGGLE_TEST_LED                   00000147
+TOGGLE_HB                         000000CF
+TOGGLE_TEST_LED                   00000148
 TOUTPS0                           00000003
 TOUTPS1                           00000004
 TOUTPS2                           00000005
@@ -1236,7 +1217,7 @@ TRISA5                            00000005
 TRISB                             00000086
 TRISB4                            00000004
 TRISB5                            00000005
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE 22
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE 22
 
 
 SYMBOL TABLE
@@ -1295,7 +1276,7 @@ WPU4                              00000004
 WPU5                              00000005
 WPUA                              00000095
 WPUA0                             00000000
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE 23
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE 23
 
 
 SYMBOL TABLE
@@ -1354,7 +1335,7 @@ _IDLOC0                           00002000
 _IDLOC1                           00002001
 _IDLOC2                           00002002
 _IDLOC3                           00002003
-MPASM 5.68                FERRET_CONTROL.ASM   5-30-2017  3:44:26         PAGE 24
+MPASM 5.68                FERRET_CONTROL.ASM   5-31-2017  17:31:35         PAGE 24
 
 
 SYMBOL TABLE
