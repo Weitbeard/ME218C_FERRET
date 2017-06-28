@@ -100,7 +100,7 @@ RUN_INDX    res	1   ;RUN sequence index
 .tables	code	H'05'	    ;start lookup tables immediately following int. vec.
 	
 ;==========================================================================
-;RUN_STEP_SEQ lookup table - hardcoded routine steps
+;RUN_STEP_SEQ lookup table - hardcoded routine steps, use RUN behavior func's
 ;==========================================================================
 RUN_STEP_SEQ:			    ;
 	addwf	PCL,F		    ;
